@@ -11,7 +11,7 @@ const Login = () => {
                 <Box borderRadius={"5px"} p={"1rem"} width={"50vw"}> 
                     <Heading>Anmelden</Heading>
                     <FormControl mb={"1rem"}>
-                        <FormLabel mb={"-8px"}>Username</FormLabel>
+                        <FormLabel mb={"-8px"}>Usernalme</FormLabel>
                         <Input value={username} onChange={e=>setUsername(e.target.value)} placeholder="Username" />
                     </FormControl>
                     <FormControl>
