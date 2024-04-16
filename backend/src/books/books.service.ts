@@ -15,6 +15,10 @@ export class BooksService {
         return this.bookModel.find().skip(offset).limit(limit);
     }
 
+    async searchBooks(search:string) {
+        const books = await this.bookModel.find({title: {$regex: new RegExp(search), $options: "i"}});
+    }
+
     findBookById(id: string) {
         return this.bookModel.findById(id);
     }

@@ -1,4 +1,4 @@
-import { Badge, Box, Image } from "@chakra-ui/react"
+import { Badge, Box, Image, Text, Tooltip } from "@chakra-ui/react"
 import { getCoverPath } from "../../hooks/BookUtils"
 import { Book } from "../../lib/types/Book"
 import { Link } from "react-router-dom"
@@ -14,15 +14,15 @@ const BookCard = ({ book }: { book: Book }) => {
                     <Image src={getCoverPath(book)} w={"100%"} h={"100%"} alt={book.title} objectFit={"fill"} />
                 </Box>
             </Link>
-            <Box p="6">
+            <Box p="1rem">
                 <Box>
                     <Badge borderRadius="full" px="2" colorScheme="teal">
                         {book.author}
                     </Badge>
                 </Box>
 
-                <Box mt="1" fontWeight="semibold" as="h4" lineHeight="tight" isTruncated>
-                    {book.title}
+                <Box mt="1" as="h4" lineHeight="tight" isTruncated>
+                    <Tooltip label={book.title}><Text>{book.title}</Text></Tooltip>
                 </Box>
             </Box>
         </Box>

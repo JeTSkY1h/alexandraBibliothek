@@ -1,13 +1,15 @@
-import { Controller, Get, Param, Query, Res } from '@nestjs/common';
+import { Controller, Get, Param, Query, Res, UseGuards } from '@nestjs/common';
 import { BooksService } from './books.service';
 import { LimitPipe } from 'src/Pipes/LimitPipe';
 import { OffsetPipe } from 'src/Pipes/OffsetPipe';
+import { AuthGuard } from 'src/auth/auth.guard';
 
 @Controller('books')
 export class BooksController {
     constructor(private readonly booksService: BooksService) { }
 
     @Get()
+    @UseGuards(AuthGuard)
     getBooks(@Query('limit', LimitPipe) limit: number, @Query('offset', OffsetPipe) offset: number){
         return this.booksService.getBooks(limit, offset);
     }
@@ -26,6 +28,11 @@ export class BooksController {
     @Get(':id')
     getBookById(@Param('id') id: string){
         return this.booksService.findBookById(id);
+    }
+
+    @Get('search/:search')
+    searchBooks(@Param('search') search: string){
+        return this.booksService.searchBooks(search);
     }
 
     

@@ -1,16 +1,23 @@
 import { CloseIcon, HamburgerIcon } from "@chakra-ui/icons"
-import { Box, Flex, IconButton, HStack, useDisclosure, Menu, MenuButton, Button, MenuList, MenuItem } from "@chakra-ui/react"
-import { NavLink } from "./NavLink"
+import { Box, Flex, IconButton, HStack, useDisclosure, Menu, MenuButton, Button, MenuList, MenuItem, Input } from "@chakra-ui/react"
+import { useState } from "react";
 import { Link } from "react-router-dom"
 
-const links = [{name:"Home",dest:"/"}, {name:"Produkte",dest:"products"}, {name:"Überuns",dest:"#"}, {name:"Kontakt",dest:"#"}]
+interface NavbarProps {
+    search: string;
+    setSearch: (search: string) => void;
+}
 
-export const Navbar = () => {
+export const Navbar = ({search, setSearch}:NavbarProps) => {
 
     const {isOpen, onToggle} = useDisclosure()
+    
+    const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setSearch(e.target.value)
+    };
 
     return  (
-        <Box bgColor="main" px={16}>
+        <Box bgColor="teal.800" px={16}>
           <Flex h={16} alignItems={"center"} justifyContent={"space-between"}>
             <IconButton 
               size={'md'}
@@ -24,14 +31,8 @@ export const Navbar = () => {
               }}
             />
             <HStack spacing={8} alignItems={"center"}>
-                <Box>Logo</Box>
-                <HStack as={"nav"} spacing={4} display={{base: "none", md: "flex"}}>
-                    {links.map((link, i)=>{
-                        return (
-                            <NavLink key={"navlink"+i} name={link.name} destination={link.dest}/>
-                        )
-                    })}
-                </HStack>
+                <Box color={"whitesmoke"} fontWeight={"semibold"}>Alexandra</Box>
+                <Input value={search} onChange={handleSearch} placeholder="Suche"/>
             </HStack>
             <Flex alignItems={"center"}>
                 <Menu>
