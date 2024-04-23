@@ -3,31 +3,29 @@ import { getBookPath, getBookfile } from "../../lib/api/books"
 import { useEffect, useState } from "react"
 import Reader from "./Reader"
 import { Spinner } from "@chakra-ui/react"
+import { useUserBookUtils } from "../../hooks/UserBookUtils"
 
 const EpupRender = () => {
     
     const {id} = useParams()
-    const [path, setPath] = useState<ArrayBuffer>()
+    const {userBookObj, isLoading, isError} = useUserBookUtils(id || "");
+    const [epubUrl, setEpubUrl] = useState<string | ArrayBuffer | null>(null);
 
-    useEffect(() => {
-        
-        if(!id) return
-        
-        getBookPath(id).then((data)=>{
-            getBookfile(data).then((res)=>{
-                console.log(res)
-                setPath(res)
-            });
+    useEffect(()=>{
+        if(!userBookObj?.path) return;
+        getBookfile(userBookObj.path).then((data)=>{
+            console.log(data);
+            setEpubUrl(data);
+        }).catch((e)=>{
+            console.log(e);
         })
-        
-    }, [id])
+    })
 
-    
     return (
         <>
-            {path ?
-                <Reader epubUrl={path}/> 
-            : <Spinner/>}
+        {isLoading && <Spinner />}
+        {isError && <p>Error</p>}
+        {epubUrl && <Reader epubUrl={epubUrl} />}
         </>
     )
 }

@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { register, login } from "../lib/api/user";
 import { User } from "../lib/types/User";
 import { useNavigate } from "react-router-dom";
@@ -31,11 +31,11 @@ export const isLoggedIn = () => {
 export const useLoginUser = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [isError, setIsError] = useState(false);
-
     const [username, setUsername] = useState<string>("");
     const [password, setPassword] = useState<string>("");
 
     const navigate = useNavigate();
+
 
     const loginUser = useCallback(() => {
         setIsLoading(true);
@@ -54,7 +54,7 @@ export const useLoginUser = () => {
             setIsLoading(false);
             setIsError(false);
             localStorage.setItem("token", tokenObj.access_token);
-            navigate("/");
+            setTimeout(()=>{navigate("/")}, 200);
             
         }).catch((error) => {
             localStorage.removeItem("token");
@@ -70,7 +70,7 @@ export const useLoginUser = () => {
         password, setPassword,
         isLoading,
         isError,
-        loginUser
+        loginUser,
     }
 }
 

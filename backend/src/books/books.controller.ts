@@ -31,8 +31,8 @@ export class BooksController {
     }
 
     @Get('search/:search')
-    searchBooks(@Param('search') search: string){
-        return this.booksService.searchBooks(search);
+    searchBooks(@Param('search') search: string, @Query('limit', LimitPipe) limit: number, @Query('offset', OffsetPipe) offset: number ){
+        return this.booksService.searchBooks(search, limit, offset);
     }
 
     

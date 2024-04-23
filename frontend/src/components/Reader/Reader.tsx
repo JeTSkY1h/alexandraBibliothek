@@ -14,6 +14,9 @@ const Reader: React.FC<ReaderProps> = ({ epubUrl }) => {
   const [location, setLocation] = React.useState("");
   const [display, setdisplay] = React.useState(false);
 
+  useEffect(() => {
+    console.log(location)
+  }, [location])
 
   useEffect(  () => {
     console.log(epubUrl)

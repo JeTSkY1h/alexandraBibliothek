@@ -1,4 +1,4 @@
-import { Badge, Box, Image, Text, Tooltip } from "@chakra-ui/react"
+import { Badge, Box, Button, Flex, Image, Text, Tooltip } from "@chakra-ui/react"
 import { getCoverPath } from "../../hooks/BookUtils"
 import { Book } from "../../lib/types/Book"
 import { Link } from "react-router-dom"
@@ -8,11 +8,30 @@ const BookCard = ({ book }: { book: Book }) => {
     
 
     return (
-        <Box borderWidth="1px" borderRadius="lg" width="200px" m="4">
+        <Box
+            role="group"
+            as="article"
+            w={{base: 100, md: 200}}
+            h={{base: 200, md: 400}}
+            overflow={"hidden"}
+            borderRadius={"lg"}
+            boxShadow={"md"} 
+            transition="transform 0.2s"
+            _hover={{ transform: "scale(1.05)" }}
+            bg={"white"}
+        >
+            <Button 
+                position="absolute"
+                top="5px"
+                right="5px"
+                opacity="0"
+                _groupHover={{opacity: "1"}}>
+                Edit
+            </Button>
             <Link to={`/book/${book._id}`}>
-                <Box overflow={"hidden"} borderRadius="lg" width="200px" h={"300px"}>
-                    <Image src={getCoverPath(book)} w={"100%"} h={"100%"} alt={book.title} objectFit={"fill"} />
-                </Box>
+                <Flex justify="center" alignItems={"items-center"}>
+                    <Image src={getCoverPath(book)} w="full" h={{base: 150, md:300}} alt={book.title} objectFit={"cover"} />
+                </Flex>
             </Link>
             <Box p="1rem">
                 <Box>

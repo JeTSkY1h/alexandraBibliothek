@@ -7,13 +7,14 @@ import { AuthModule } from './auth/auth.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { BooksModule } from './books/books.module';
+import { UserBooksModule } from './user-books/user-books.module';
 import * as express from 'express';
 
 @Module({
   imports: [
     MongooseModule.forRoot("mongodb://root:example@localhost:27017/Alexandra"),
     UserModule, 
-    AuthModule, BooksModule,
+    AuthModule, BooksModule, UserBooksModule,
   ],
   controllers: [AppController],
   providers: [AppService],

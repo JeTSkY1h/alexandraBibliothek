@@ -1,20 +1,17 @@
 import { Box } from "@chakra-ui/react"
 import BookGalery from "./components/Books/BookGalery"
 import { Navbar } from "./components/Nav/Navbar"
-import { useEffect, useState } from "react"
+import { useBookLoader } from "./hooks/BookUtils"
 
 
 const Home = () => {
-    const [search, setSearch] = useState<string>("")
+    const {books, loading, error, setLimit, setOffset, setSearch, search } = useBookLoader()
 
-    useEffect(() => {
-        console.log(search)
-    }, [search])
 
     return (
-        <Box>
+        <Box backgroundImage={"url('papyrus.webp')"} backgroundAttachment={"fixed"}>
             <Navbar search={search} setSearch={setSearch}/>
-            <BookGalery />
+            <BookGalery books={books} loading={loading} error={!!error}/>
         </Box>
     )
 }
