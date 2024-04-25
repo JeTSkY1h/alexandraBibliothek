@@ -2,24 +2,24 @@ import React, { useEffect, useRef } from 'react';
 import ePub from 'epubjs';
 import {Rendition} from 'epubjs';
 import { Box, Button} from '@chakra-ui/react';
+import { useUserBookUtils } from '../../hooks/UserBookUtils';
 
 interface ReaderProps {
+  location?: string
   epubUrl: ArrayBuffer | string;
+  bookID: string;
 }
 
-const Reader: React.FC<ReaderProps> = ({ epubUrl }) => {
+const Reader: React.FC<ReaderProps> = ({ epubUrl, bookID, location }) => {
   const bookRef = useRef(null);
   const [error, setError] = React.useState("");
   const [rendition, setRendition] = React.useState<Rendition | null>(null);
-  const [location, setLocation] = React.useState("");
   const [display, setdisplay] = React.useState(false);
+  const {setLocation} = useUserBookUtils(bookID);
 
-  useEffect(() => {
-    console.log(location)
-  }, [location])
 
   useEffect(  () => {
-    console.log(epubUrl)
+    console.log(location)
     if(!bookRef.current) {
       setError('No ref found');
       return;
@@ -31,18 +31,18 @@ const Reader: React.FC<ReaderProps> = ({ epubUrl }) => {
       flow: "scrolled-doc",
       width: "100%"})
     
-    rend.on("rendered", (section:any) => {
-      const prev = section.prev()
-      const next = section.next()
+    
+    rend.on("relocated", (section:any) => {
+      console.log("relocate", section)
+      setLocation(section.start.cfi);
+      console.log(rend.getContents());
 
-      if(next) {
-        console.log("lol", book.navigation.get(next.href))
-        console.log(next.href)
-      }
+    })
 
-      if(prev) {
-        console.log(book.navigation.get(prev.href))
-      }
+    rend.on("visibleLocationChanged", (cfiRange:any) => {
+      console.log("Visible location changed", cfiRange)
+      // Save the cfiRange to local storage or a database
+      localStorage.setItem('lastLocation', cfiRange.start);
     })
 
     setRendition(rend);
@@ -51,22 +51,24 @@ const Reader: React.FC<ReaderProps> = ({ epubUrl }) => {
   useEffect(() => {
     if(display) return
     if(!rendition) return;
-    rendition.display();
+    if(location) {
+      console.log("REndering with location", location)
+      rendition.display(location);
+    } else {
+      rendition.display();
+    }
     setdisplay(true)
   }, [rendition]);
 
   const nextPage = () => {
     if(rendition) {
       rendition.next();
-      console.log(rendition)
-      setLocation(rendition.location.start.cfi);
     }
   }
 
   const prevPage = () => {
     if(rendition) {
       rendition.prev();
-      setLocation(rendition.location.start.cfi);
     }
   }
 

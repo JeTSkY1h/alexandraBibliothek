@@ -47,10 +47,13 @@ export class UserBooksService {
     }
 
     async updateLocation(location:string, userId:string, bookId:string) {
+        console.log(location, userId, bookId);
         const userBook = await this.userBookModel.findOne({bookId: bookId, userId: userId});
         userBook.location = location;
-        this.userBookModel.updateOne({bookId: bookId, userId: userId}, userBook);
+        return this.userBookModel.updateOne({bookId: bookId, userId: userId}, userBook);
     }
+
+
 
 
 }

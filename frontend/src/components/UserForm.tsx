@@ -1,4 +1,4 @@
-import { Box, Flex, FormControl, FormErrorMessage, FormHelperText, FormLabel, Heading, Input } from "@chakra-ui/react"
+import { Box, FormControl, FormErrorMessage, FormHelperText, FormLabel, Heading, Input } from "@chakra-ui/react"
 import { useEffect, useState } from "react"
 import { User } from "../lib/types/User"
 

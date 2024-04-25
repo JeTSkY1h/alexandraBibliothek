@@ -11,11 +11,13 @@ export class UserBooksController {
 
     @Post()
     async openBook(@JwToken(GetUserPipe) userId:string, @Body() userBooksDTO: userBooksDTO) {
-        console.log("opening book", userBooksDTO);
-        console.log("user id", userId);
+ 
         return this.userBooksService.openBook(userBooksDTO, userId);
 
-        //return {userId: userId, userBooksDTO: userBooksDTO}
-        this.userBooksService.openBook(userBooksDTO, userId);
+    }
+
+    @Post("location")
+    async updateLocation(@JwToken(GetUserPipe) userId:string, @Body() {location, bookId}: {location:string, bookId:string}) {
+        return this.userBooksService.updateLocation(location, userId, bookId);
     }
 }

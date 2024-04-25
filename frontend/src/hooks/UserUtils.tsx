@@ -1,7 +1,6 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 import { register, login } from "../lib/api/user";
 import { User } from "../lib/types/User";
-import { useNavigate } from "react-router-dom";
 
 export const isLoggedIn = () => {
     const token = localStorage.getItem("token");
@@ -26,15 +25,13 @@ export const isLoggedIn = () => {
     }
   
     return true;
-  }
+}
 
 export const useLoginUser = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [isError, setIsError] = useState(false);
     const [username, setUsername] = useState<string>("");
     const [password, setPassword] = useState<string>("");
-
-    const navigate = useNavigate();
 
 
     const loginUser = useCallback(() => {
@@ -53,9 +50,10 @@ export const useLoginUser = () => {
         login(username, password).then((tokenObj) => {
             setIsLoading(false);
             setIsError(false);
-            localStorage.setItem("token", tokenObj.access_token);
-            setTimeout(()=>{navigate("/")}, 200);
-            
+            localStorage.setItem("token", tokenObj.access_token);  
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);          
         }).catch((error) => {
             localStorage.removeItem("token");
             console.log(error)
@@ -63,7 +61,7 @@ export const useLoginUser = () => {
             setIsError(true);
         });
 
-    }, [username, password, navigate]);
+    }, [username, password]);
 
     return {
         username, setUsername,
