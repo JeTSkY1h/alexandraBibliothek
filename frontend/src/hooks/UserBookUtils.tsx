@@ -40,11 +40,8 @@ export const useUserBookUtils = (bookID:string) => {
         if(!location) return;
         if(isLoading) return;
         setIsLoading(true);
-        console.log(location, bookID);
-        updateLocation(location, bookID).then((data)=>{
+        updateLocation(location, bookID).then(()=>{
             setIsLoading(false);
-            console.log(data);
-        
         }).catch((e)=>{
             setIsError(true);
             setIsLoading(false);

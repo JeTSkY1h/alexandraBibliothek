@@ -1,5 +1,5 @@
 import { useParams } from "react-router-dom"
-import { getBookPath, getBookfile } from "../../lib/api/books"
+import { getBookfile } from "../../lib/api/books"
 import { useEffect, useState } from "react"
 import Reader from "./Reader"
 import { Spinner } from "@chakra-ui/react"

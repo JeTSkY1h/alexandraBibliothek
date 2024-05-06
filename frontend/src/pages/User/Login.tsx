@@ -15,7 +15,7 @@ const Login = () => {
                     </FormControl>
                     <FormControl>
                         <FormLabel mb={"-8px"}>Password</FormLabel>
-                        <Input value={password} onChange={e=>setPassword(e.target.value)} type="password" placeholder="Password" />
+                        <Input onKeyDown={e=>{if(e.key === "Enter"){loginUser()}}} value={password} onChange={e=>setPassword(e.target.value)} type="password" placeholder="Password" />
                     </FormControl>
                     <Button onClick={loginUser} mt={"1rem"} w="100%" colorScheme={isError ? "red" : "gray"}>{isLoading ? <Spinner/> : isError ? "Erneut Versuchen" : "Login"}</Button>
                 </Box>

@@ -6,8 +6,6 @@ const token = localStorage.getItem("token");
 export const searchBooks = async (limit:number, offset:number, search:string) => {
     const limitStr = limit ? "?limit=" + limit : "";
     const offsetStr = offset ? "&offset="+offset : "";
-    const searchStr = search ? "&search="+search : "";
-
     return axios.get(`${baseUrl}/books/search/${search}` + limitStr + offsetStr, {headers: {Authorization: `Bearer ${token}`}}).then((res)=>{
         return res.data
     });

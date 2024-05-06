@@ -2,6 +2,11 @@ import { useState, useCallback } from "react";
 import { register, login } from "../lib/api/user";
 import { User } from "../lib/types/User";
 
+export const logoutUser = () => {
+    localStorage.removeItem("token");
+    window.location.reload();
+}
+
 export const isLoggedIn = () => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -36,7 +41,6 @@ export const useLoginUser = () => {
 
     const loginUser = useCallback(() => {
         setIsLoading(true);
-        console.log(username, password)
         if ( username === "" || password === "") {
             setIsError(true);
             setIsLoading(false);

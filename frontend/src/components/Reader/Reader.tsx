@@ -19,7 +19,6 @@ const Reader: React.FC<ReaderProps> = ({ epubUrl, bookID, location }) => {
 
 
   useEffect(  () => {
-    console.log(location)
     if(!bookRef.current) {
       setError('No ref found');
       return;
@@ -33,16 +32,7 @@ const Reader: React.FC<ReaderProps> = ({ epubUrl, bookID, location }) => {
     
     
     rend.on("relocated", (section:any) => {
-      console.log("relocate", section)
       setLocation(section.start.cfi);
-      console.log(rend.getContents());
-
-    })
-
-    rend.on("visibleLocationChanged", (cfiRange:any) => {
-      console.log("Visible location changed", cfiRange)
-      // Save the cfiRange to local storage or a database
-      localStorage.setItem('lastLocation', cfiRange.start);
     })
 
     setRendition(rend);
@@ -52,7 +42,6 @@ const Reader: React.FC<ReaderProps> = ({ epubUrl, bookID, location }) => {
     if(display) return
     if(!rendition) return;
     if(location) {
-      console.log("REndering with location", location)
       rendition.display(location);
     } else {
       rendition.display();
@@ -74,7 +63,6 @@ const Reader: React.FC<ReaderProps> = ({ epubUrl, bookID, location }) => {
 
   return (
     <>
-      
         <Box width={"100vw"} display={"flex"} justifyContent={"center"} flexDirection={"row"}>
           <Button left={"1px"} top={"1px"} pos={"fixed"} height={"100vh"} onClick={prevPage}>Prev</Button>
           <Box ref={bookRef} minW={"800px"} padding={"4rem"}/>

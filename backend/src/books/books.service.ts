@@ -5,13 +5,13 @@ import { Model } from 'mongoose';
 import { Book } from './books.model';
 import { join } from "path";
 import * as Epub from "epub";
+import { finished } from "stream";
 
 @Injectable()
 export class BooksService {
     constructor(@InjectModel("Book") private readonly bookModel: Model<Book>) {}
         
     getBooks(limit: number, offset: number) {
-
         return this.bookModel.find().skip(offset).limit(limit);
     }
 
@@ -42,71 +42,106 @@ export class BooksService {
 
     async reMigrateDB() {
         const files = fs.readdirSync(join(__dirname, '..','..', '/uploads/archiv'));
-        const lol = files.splice(0, 100);
-        lol.forEach((file, i) =>{
-            console.log(file);
+
+        for await (const file of files) {
+            if(file.endsWith(".pdf")){
+                continue;
+            }
             const filePath = join(__dirname, '..','..', '/uploads/archiv', file);
             const book = new Epub(filePath);
             const bookDoc:any = {};
-            book.on("end", async () => {
-                let cover;
-                if(!book.metadata.cover || typeof book.metadata.cover !== "string") {
-                    cover = "cover"
-                }
-                else {
-                    cover = book.metadata.cover;
-                }
-                book.getImage(cover, async (err, data, mimeType) => {
-                    if(mimeType === "undefined") {
-                        bookDoc.cover = "";
-                        return;
-                    }
-                    if(err) {
-                        console.log(err);
-                        bookDoc.cover = ""
-                        return;
-                    }
-                    const ext = mimeType.split('/')[1];
 
-                    if(!book.metadata.title) {
-                        console.log(book.metadata);
-                        console.log(file)
-                        book.metadata.title = file.replace(".epub", "");
-                    }
-                    const sanitizedTitle = book.metadata.title.replace(/[^a-zA-Z0-9]/g, '');
+            await new Promise<void>((resolve, reject) => {
+                book.on("end", async () => {
+                    console.log("parsing file " + book.metadata.title);
+
+                    const imageKeys = Object.keys(book.manifest).filter(key => 
+                        book.manifest[key].mediaType?.startsWith('image/') || 
+                        book.manifest[key]['media-type']?.startsWith('image/')
+                    );
+                    console.log("imageKeys", imageKeys);
+                    let cover = imageKeys[0];
                     
+                    const metadata = book.metadata;
 
-                    const picPath = join(__dirname, '..','..', '/uploads/archiv/covers/',  sanitizedTitle + "." + ext);
-                    try {
-                        fs.writeFileSync(picPath, data);
-                        bookDoc.cover = picPath.split('/').slice(-1)[0];
-                    } catch (error) {
-                        console.log(book.metadata)
-                        console.log(error);
-                        bookDoc.cover = "";
+                    const coverPrmoise = await new Promise<string>((resolve, reject) => {
+                        book.getImage(cover, async (err, data, mimeType) => {
+                            if(mimeType === "undefined") {
+                                console.log("no cover found");
+                                cover = "";
+                                resolve(cover);
+                                return
+                            }
+                            if(err) {
+                                console.log("get Iamge error", err);
+                                cover = ""
+                                resolve(cover);
+                                return;
+                            }
+          
+                            const ext = mimeType.split('/')[1];
+
+                            if(!metadata.title) {
+                                metadata.title = file.replace(".epub", "");
+                            }
+
+                            const sanitizedTitle = metadata.title.replace(/[^a-zA-Z0-9]/g, '');
                         
-                    }
-
+                            const picPath = join(__dirname, '..','..', '/uploads/archiv/covers/',  sanitizedTitle + "." + ext);
+                            try {
+                                console.log("writing file " + picPath)
+                                fs.writeFileSync(picPath, data);
+                                cover = picPath.split('/').slice(-1)[0];
+                                resolve(cover);
+                            } catch (error) {
+                                console.log("error writing file", error)
+                                cover = "";
+                                resolve(cover);
+                            }
+                            console.log(cover)
+                        });
+                    }); 
+                    
                     const bookObj:any = book
+                
                     
                     bookDoc.isbn = bookObj?.metadata.isbn || bookObj?.metadata.ISBN || "unknown";
                     bookDoc.path = filePath.split('/').slice(-1)[0];
                     bookDoc.author = bookObj?.metadata.creator || "unknown";
                     bookDoc.title = bookObj?.metadata.title || file.replace(".epub", "");
                     bookDoc.pubdate = bookObj?.metadata.date || new Date(Date.now()).toDateString();
-                    console.log(bookObj?.metadata)
-                    console.log(bookDoc)
-                    this.bookModel.create(bookDoc);
-                    
-
-                });
-            console.log(file)
-            console.log("finished file " + i + " of " + files.length);
+                    bookDoc.cover = coverPrmoise;
+                    console.log("bookDoc", bookDoc)
+                    try {
+                        const existingBook = await this.bookModel.findOne({title: bookDoc.title});
+                        if(!existingBook) {
+                            console.log("cover", bookDoc.cover)
+                            await this.bookModel.create(bookDoc).then(()=>{
+                                console.log("finished file " + bookDoc.title + " successfully")
+                                resolve();
+                            });
+                        }
+                        else {
+                            console.log("book already exists")
+                            resolve();
+                        }
+                            
+                    } catch (error) {
+                        console.log(error);
+                        reject();
+                    }
+            
+                })
+                try {
+                    book.parse();
+                } catch (error) {
+                    console.log(error);
+                    reject();
+                }
             });
-            book.parse();
-        });
+        };
 
         return "done";
-            
+
     }
 }

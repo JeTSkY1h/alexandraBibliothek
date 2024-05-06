@@ -1,7 +1,7 @@
 import { CloseIcon, HamburgerIcon } from "@chakra-ui/icons"
 import { Box, Flex, IconButton, HStack, useDisclosure, Menu, MenuButton, Button, MenuList, MenuItem, Input } from "@chakra-ui/react"
-import { useState } from "react";
 import { Link } from "react-router-dom"
+import { isLoggedIn, logoutUser } from "../../hooks/UserUtils";
 
 interface NavbarProps {
     search: string;
@@ -10,6 +10,7 @@ interface NavbarProps {
 
 export const Navbar = ({search, setSearch}:NavbarProps) => {
 
+    const loginState = isLoggedIn()
     const {isOpen, onToggle} = useDisclosure()
     
     const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -42,7 +43,7 @@ export const Navbar = ({search, setSearch}:NavbarProps) => {
                     />
                     <MenuList>
                         <MenuItem>
-                            <Link to="login">Anmelden</Link>
+                            <Button onClick={logoutUser}>Abmelden</Button>
                         </MenuItem>
                         <MenuItem>
                         <Link to="register">Registrieren</Link>
