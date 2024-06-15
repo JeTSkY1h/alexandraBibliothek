@@ -1,4 +1,4 @@
-import { Box, Flex, Spinner } from "@chakra-ui/react";
+import { Box, Center, Flex, Spinner } from "@chakra-ui/react";
 import BookCard from "./BookCard";
 import { Book } from "../../lib/types/Book";
 
@@ -14,7 +14,7 @@ export const BookGalery = ({books, loading, error}:BookGaleryProps) => {
     return (
         <>
             {loading && <Spinner/>}
-            {error && <Box color={"red.400"}></Box>}
+            {error && <Box color={"red.400"}><Center></Center></Box>}
             <Flex p={6} gap={6} flexWrap={"wrap"} justifyContent={"center"}>
                 {books.map((book, i) => 
                     <BookCard key={i} book={book} />

@@ -6,13 +6,25 @@ import { Book } from './books.model';
 import { join } from "path";
 import * as Epub from "epub";
 import { finished } from "stream";
+import { BooksValidator } from "./books.validator";
 
 @Injectable()
 export class BooksService {
     constructor(@InjectModel("Book") private readonly bookModel: Model<Book>) {}
-        
-    getBooks(limit: number, offset: number) {
-        return this.bookModel.find().skip(offset).limit(limit);
+    
+    async updateBook(book: BooksValidator) {
+        const existingBook = await this.bookModel.findById(book.id);
+        if(!existingBook) {
+            throw new BadRequestException("Book not found");
+        }
+        let newBook:any = book;
+        newBook._id = book.id;
+        await this.bookModel.updateOne({_id: book.id}, newBook);
+        return "Book updated";
+    }
+
+    async getBooks(limit: number, offset: number) {
+        return await this.bookModel.find().skip(offset).limit(limit);
     }
 
     async searchBooks(search:string, limit: number, offset: number) {

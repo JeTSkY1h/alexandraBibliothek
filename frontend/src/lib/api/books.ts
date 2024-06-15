@@ -3,6 +3,12 @@ import { baseUrl } from "./url"
 
 const token = localStorage.getItem("token");
 
+export const getBook = async (id:string) => {
+    return axios.get(`${baseUrl}/books/${id}`, {headers: {Authorization: `Bearer ${token}`}}).then((res)=>{
+        return res.data
+    });
+}
+
 export const searchBooks = async (limit:number, offset:number, search:string) => {
     const limitStr = limit ? "?limit=" + limit : "";
     const offsetStr = offset ? "&offset="+offset : "";

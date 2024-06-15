@@ -4,16 +4,16 @@ import { Link } from "react-router-dom"
 import { isLoggedIn, logoutUser } from "../../hooks/UserUtils";
 
 interface NavbarProps {
-    search: string;
-    setSearch: (search: string) => void;
+    search?: string;
+    setSearch?: (search: string) => void;
 }
 
 export const Navbar = ({search, setSearch}:NavbarProps) => {
-
     const loginState = isLoggedIn()
     const {isOpen, onToggle} = useDisclosure()
     
     const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if(!setSearch) return;
         setSearch(e.target.value)
     };
 
@@ -33,7 +33,7 @@ export const Navbar = ({search, setSearch}:NavbarProps) => {
             />
             <HStack spacing={8} alignItems={"center"}>
                 <Box color={"whitesmoke"} fontWeight={"semibold"}>Alexandra</Box>
-                <Input value={search} onChange={handleSearch} placeholder="Suche"/>
+                { <Input value={search} onChange={handleSearch} placeholder="Suche"/>}
             </HStack>
             <Flex alignItems={"center"}>
                 <Menu>
@@ -42,8 +42,8 @@ export const Navbar = ({search, setSearch}:NavbarProps) => {
                         rounded={"full"}
                     />
                     <MenuList>
-                        <MenuItem>
-                            <Button onClick={logoutUser}>Abmelden</Button>
+                        <MenuItem onClick={logoutUser}>
+                            Abmelden
                         </MenuItem>
                         <MenuItem>
                         <Link to="register">Registrieren</Link>

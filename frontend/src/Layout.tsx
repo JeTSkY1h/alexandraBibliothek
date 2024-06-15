@@ -1,14 +1,14 @@
 import { Box, Button, Flex } from "@chakra-ui/react"
 import BookGalery from "./components/Books/BookGalery"
 import { Navbar } from "./components/Nav/Navbar"
-import { useBookLoader } from "./hooks/BookUtils"
+import { useBooksLoader } from "./hooks/BookUtils"
 import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons"
 import { useEffect, useState } from "react"
 import { useStateSearchParam } from "./hooks/useStateSearchParam"
 
 
 const Home = () => {
-    const {books, loading, error, setLimit, setOffset, setSearch, search } = useBookLoader()
+    const {books, loading, error, setLimit, setOffset, setSearch, search } = useBooksLoader()
     const [page, setPage] = useStateSearchParam('page', '0')
     
     

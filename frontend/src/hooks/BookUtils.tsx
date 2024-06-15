@@ -3,10 +3,37 @@ import { getBookPath, getBooks, searchBooks } from "../lib/api/books";
 import { Book } from "../lib/types/Book";
 import { baseUrl } from "../lib/api/url";
 
+export const useBookLoader = (id: string) => {
+    const [book, setBook] = useState<Book | null>(null);
+    const [error, setError] = useState<string | null>(null);
+    const [loading, setLoading] = useState(false);
+
+    const loadBook = useCallback(() => {
+        setLoading(true);
+        getBookPath(id).then((data) => {
+            setBook(data);
+            setLoading(false);
+        }).catch((e) => {
+            console.log(e);
+            setError(e);
+            setLoading(false);
+        });
+    }, [id])
+
+    useEffect(() => {
+        loadBook();
+    }, [loadBook])
+
+    return {
+        book,
+        error,
+        loading
+    }
+
+}
 
 
-
-export const useBookLoader = (limit?:number, page?:number) => {
+export const useBooksLoader = (limit?:number, page?:number) => {
     const [books, setBooks] = useState<Book[]>([])
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);

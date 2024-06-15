@@ -20,6 +20,7 @@ const BookCard = ({ book }: { book: Book }) => {
             _hover={{ transform: "scale(1.05)" }}
             bg={"white"}
         >
+            <Link to={`/edit/${book._id}`}>
             <Button 
                 position="absolute"
                 top="5px"
@@ -27,7 +28,9 @@ const BookCard = ({ book }: { book: Book }) => {
                 opacity="0"
                 _groupHover={{opacity: "1"}}>
                 Edit
+
             </Button>
+            </Link>
             <Link to={`/book/${book._id}`}>
                 <Flex justify="center" alignItems={"items-center"}>
                     <Image src={getCoverPath(book)} w="full" h={{base: 150, md:300}} alt={book.title} objectFit={"cover"} />

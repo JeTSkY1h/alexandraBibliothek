@@ -18,9 +18,16 @@ export class AppController {
       res.sendFile(join(__dirname,'..', '/uploads/archiv/covers', bookId));
   }
 
-  @Get("book/:bookId")
+  @Get("book/:path")
   @UseGuards(AuthGuard)
-  async serveFile(@Param('bookId') bookId: string, @Res() res: Response): Promise<any> {
-      res.sendFile(join(__dirname,'..', '/uploads/archiv', bookId));
-    }    
+  async serveFile(@Param('path') path: string, @Res() res: Response): Promise<any> {
+      res.sendFile(join(__dirname,'..', '/uploads/archiv', path));
+    }
+    
+  @Get("bookbyId/:id")
+  @UseGuards(AuthGuard)
+  async serveFileById(@Param('id') id: string, @Res() res: Response): Promise<any> {
+      res.sendFile(join(__dirname,'..', '/uploads/archiv', id));
+    }
+
 }

@@ -1,12 +1,19 @@
-import { Controller, Get, Param, Query, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query, Res, UseGuards } from '@nestjs/common';
 import { BooksService } from './books.service';
 import { LimitPipe } from 'src/Pipes/LimitPipe';
 import { OffsetPipe } from 'src/Pipes/OffsetPipe';
 import { AuthGuard } from 'src/auth/auth.guard';
+import { BooksValidator } from './books.validator';
 
 @Controller('books')
 export class BooksController {
     constructor(private readonly booksService: BooksService) { }
+
+    @Post()
+    @UseGuards(AuthGuard)
+    updateBook(@Body() book: BooksValidator){
+        return this.booksService.updateBook(book);
+    }
 
     @Get()
     @UseGuards(AuthGuard)
