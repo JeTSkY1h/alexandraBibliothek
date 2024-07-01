@@ -10,18 +10,26 @@ export class UserBooksService {
     constructor(@InjectModel("UserBook") private readonly userBookModel: Model<UserBook>,
         private readonly booksService:BooksService) {}
 
-    async test() {
-        return "lol";
+    async getLastReadBooks(userId: string, limit:number, offset:number) {
+        const userBooks = await this.userBookModel.find({userId: userId}).sort({lastOpenedAt: "desc"}).skip(offset).limit(limit);
+        const books = await this.booksService.getBooksByIds(userBooks.map((userBook) => userBook.bookId));
+        return books
     }
 
+    async getUserBooks(userId: string, limit:number, offset:number) {
+        return this.userBookModel.find({userId: userId}).sort({lastOpenedAT: "desc"}).skip(offset).limit(limit);
+    }
+
+    async getUserBook(userId: string, bookId: string) {
+        return this.userBookModel.findOne({userId: userId, bookId: bookId});
+    }
 
     async openBook(userBooksDTO: userBooksDTO, userId: string) {
-        
+        console.log("Opening book", userBooksDTO, userId);
         const userBook = await this.userBookModel.findOne({bookId: userBooksDTO.bookId, userId: userId});
         const book = await this.booksService.findBookById(userBooksDTO.bookId);
 
         if(!userBook) {
-            console.log(userId)
             const newUserBook = new this.userBookModel({
                 bookId: userBooksDTO.bookId,
                 startedAt: new Date(Date.now()),
@@ -29,20 +37,19 @@ export class UserBooksService {
                 lastOpenedAt: new Date(Date.now()),
                 location: "0",
             });
-            console.log(newUserBook);
             const createdUserBook = await this.userBookModel.create(newUserBook);
             const lol:any = createdUserBook.toObject();
             lol.path = book.path;
-            console.log("returning", lol);
+            console.log("Creating NEW USER BOOK");
+            console.log("returning new userBook");
             return lol;            
         }
 
         let newUserBook:IUserBookDTO = userBook.toObject();
         newUserBook.lastOpenedAt = new Date(Date.now());
-        newUserBook.lastOpenedAt = newUserBook.lastOpenedAt;
         const updatedBook = await this.userBookModel.updateOne({bookId: userBooksDTO.bookId, userId: userId}, userBook);
         newUserBook.path = book.path;
-        console.log("returning", newUserBook);
+        console.log("returning old userBook");
         return newUserBook;
     }
 

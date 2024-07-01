@@ -14,7 +14,7 @@ import * as express from 'express';
   imports: [
     MongooseModule.forRoot("mongodb://root:example@localhost:27017/Alexandra"),
     UserModule, 
-    AuthModule, BooksModule, UserBooksModule,
+    AuthModule, UserBooksModule, BooksModule, 
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -1,11 +1,11 @@
-import { Badge, Box, Button, Flex, Image, Text, Tooltip } from "@chakra-ui/react"
+import { Badge, Box, Button, Flex, Image, Text, Tooltip, useColorModeValue } from "@chakra-ui/react"
 import { getCoverPath } from "../../hooks/BookUtils"
 import { Book } from "../../lib/types/Book"
 import { Link } from "react-router-dom"
 
 const BookCard = ({ book }: { book: Book }) => {
 
-    
+    const bg = useColorModeValue("white", "gray.800");
 
     return (
         <Box
@@ -18,7 +18,7 @@ const BookCard = ({ book }: { book: Book }) => {
             boxShadow={"md"} 
             transition="transform 0.2s"
             _hover={{ transform: "scale(1.05)" }}
-            bg={"white"}
+            bg={bg}
         >
             <Link to={`/edit/${book._id}`}>
             <Button 

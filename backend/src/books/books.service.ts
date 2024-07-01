@@ -7,20 +7,27 @@ import { join } from "path";
 import * as Epub from "epub";
 import { finished } from "stream";
 import { BooksValidator } from "./books.validator";
+import { UserBooksService } from "src/user-books/user-books.service";
 
 @Injectable()
 export class BooksService {
-    constructor(@InjectModel("Book") private readonly bookModel: Model<Book>) {}
-    
+    constructor(
+        @InjectModel("Book") private readonly bookModel: Model<Book>,
+        ) {}
+
     async updateBook(book: BooksValidator) {
-        const existingBook = await this.bookModel.findById(book.id);
+        const existingBook = await this.bookModel.findById(book._id);
         if(!existingBook) {
             throw new BadRequestException("Book not found");
         }
         let newBook:any = book;
-        newBook._id = book.id;
-        await this.bookModel.updateOne({_id: book.id}, newBook);
+        newBook._id = book._id;
+        await this.bookModel.updateOne({_id: book._id}, newBook);
         return "Book updated";
+    }
+
+    async getBooksByIds(ids: string[]) {
+        return await this.bookModel.find({_id: {$in: ids}});
     }
 
     async getBooks(limit: number, offset: number) {
@@ -29,6 +36,7 @@ export class BooksService {
 
     async searchBooks(search:string, limit: number, offset: number) {
         const books = await this.bookModel.find({$or: [{title: {$regex: search, $options: 'i'}}, {author: {$regex: search, $options: 'i'}}]})
+            .sort({title: 1})
             .limit(limit)
             .skip(offset);
         return books;
@@ -54,18 +62,26 @@ export class BooksService {
 
     async reMigrateDB() {
         const files = fs.readdirSync(join(__dirname, '..','..', '/uploads/archiv'));
-
-        for await (const file of files) {
+        //sort files by alphabetical by name
+        const sortedfiles = files.sort(new Intl.Collator("sv").compare);
+        for await (const file of sortedfiles) {
             if(file.endsWith(".pdf")){
                 continue;
             }
+            
             const filePath = join(__dirname, '..','..', '/uploads/archiv', file);
+            const isDuplicate = await this.bookModel.findOne({path: filePath.split('/').slice(-1)[0]})
+            if(isDuplicate) {
+                console.log("book " + file +" already exists");
+                continue;
+            }
+            console.log("parsing file " + file);
             const book = new Epub(filePath);
             const bookDoc:any = {};
 
             await new Promise<void>((resolve, reject) => {
                 book.on("end", async () => {
-                    console.log("parsing file " + book.metadata.title);
+                    console.log("opening book " + book.metadata.title);
 
                     const imageKeys = Object.keys(book.manifest).filter(key => 
                         book.manifest[key].mediaType?.startsWith('image/') || 
@@ -125,13 +141,18 @@ export class BooksService {
                     bookDoc.cover = coverPrmoise;
                     console.log("bookDoc", bookDoc)
                     try {
-                        const existingBook = await this.bookModel.findOne({title: bookDoc.title});
+                        const existingBook = await this.bookModel.findOne({path: filePath.split('/').slice(-1)[0]});
                         if(!existingBook) {
                             console.log("cover", bookDoc.cover)
+                            try {
                             await this.bookModel.create(bookDoc).then(()=>{
                                 console.log("finished file " + bookDoc.title + " successfully")
                                 resolve();
-                            });
+                            });}
+                            catch (error) {
+                                console.log("error writing file", error)
+                                resolve();
+                            }
                         }
                         else {
                             console.log("book already exists")
@@ -148,7 +169,7 @@ export class BooksService {
                     book.parse();
                 } catch (error) {
                     console.log(error);
-                    reject();
+                    resolve();
                 }
             });
         };

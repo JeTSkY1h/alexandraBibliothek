@@ -3,28 +3,32 @@ import { openBook, updateLocation } from "../lib/api/userBook";
 import { IUserBookDTO } from "../lib/types/UserBook";
 
 export const useUserBookLoader = (bookId:string) => {
+    console.log("useBookLoader called with id : ", bookId);
     const [userBookObj, setUserBookObj] = useState<IUserBookDTO>();
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [isError, setIsError] = useState<boolean>(false);
+    const [isOpened, setIsOpened] = useState<boolean>(false);
 
-    const openBookHandler = useCallback(async () => {
-        if(!bookId) return;
-        if(isLoading) return;
+    useEffect(()=> {
+        if(!bookId || isLoading || isOpened) {
+            console.log("Returning early");
+            console.log("BookId: ", bookId);
+            console.log("isOpened: ", isOpened);
+            console.log("isLoading: ", isLoading);
+            return
+        }
         setIsLoading(true);
-        openBook(bookId).then((data)=>{
-            console.log(data);
+        openBook(bookId).then((data:any)=>{
+            console.log("Opening book: ", data);
             setUserBookObj(data);
         }).catch((e)=>{
             setIsError(true);
             console.log(e);
         }).finally(()=>{
+            setIsOpened(true)
             setIsLoading(false);
         });
-    }, [bookId, isLoading]);
-
-    useEffect(()=> {
-        openBookHandler();
-    }, [bookId])
+    }, [])
 
     return {userBookObj, isLoading, isError}
 

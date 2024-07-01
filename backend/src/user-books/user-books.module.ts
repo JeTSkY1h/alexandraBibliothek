@@ -6,8 +6,8 @@ import { userBookShema } from './user-books.model';
 import { BooksModule } from 'src/books/books.module';
 
 @Module({
-  imports: [MongooseModule.forFeature([{ name: 'UserBook', schema: userBookShema }]), BooksModule],
+  imports: [BooksModule, MongooseModule.forFeature([{ name: 'UserBook', schema: userBookShema }])],
   controllers: [UserBooksController],
-  providers: [UserBooksService]
+  providers: [UserBooksService],
 })
 export class UserBooksModule {}

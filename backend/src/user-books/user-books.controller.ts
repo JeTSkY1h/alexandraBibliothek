@@ -1,9 +1,10 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post } from '@nestjs/common';
 import {userBooksDTO} from "./user-books.validator";
 import { UserBooksService } from './user-books.service';
 import { JwToken } from 'src/Decorators/JwToken';
 import { GetUserPipe } from 'src/Pipes/GetUserPipe';
 import { AuthGuard } from 'src/auth/auth.guard';
+import { Pagination } from 'src/Decorators/Pagination';
 
 @Controller('user-books')
 export class UserBooksController {
@@ -11,13 +12,17 @@ export class UserBooksController {
 
     @Post()
     async openBook(@JwToken(GetUserPipe) userId:string, @Body() userBooksDTO: userBooksDTO) {
- 
         return this.userBooksService.openBook(userBooksDTO, userId);
-
     }
 
     @Post("location")
     async updateLocation(@JwToken(GetUserPipe) userId:string, @Body() {location, bookId}: {location:string, bookId:string}) {
         return this.userBooksService.updateLocation(location, userId, bookId);
     }
+
+    @Get("last-read")
+    async getLastReadBooks(@JwToken(GetUserPipe) userId:string, @Pagination() pagination: {limit:number, offset:number}) {
+        return this.userBooksService.getLastReadBooks(userId, pagination.limit, pagination.offset);
+    }
+
 }

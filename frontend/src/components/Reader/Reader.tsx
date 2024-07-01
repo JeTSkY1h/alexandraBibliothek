@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import ePub from 'epubjs';
 import {Rendition} from 'epubjs';
-import { Box, Button} from '@chakra-ui/react';
+import { Box, Button, useColorMode, useColorModeValue} from '@chakra-ui/react';
 import { useUserBookUtils } from '../../hooks/UserBookUtils';
 import Section from 'epubjs/types/section';
 
@@ -18,6 +18,8 @@ const Reader: React.FC<ReaderProps> = ({ epubUrl, bookID, location }) => {
   const [rendition, setRendition] = useState<Rendition | null>(null);
   const [display, setdisplay] = React.useState(false);
   const {setLocation} = useUserBookUtils(bookID);
+  const bookBackground = useColorModeValue("white", "#1A202C");
+  const fontColor = useColorModeValue("black", "white");
 
 
   useEffect(  () => {
@@ -40,23 +42,26 @@ const Reader: React.FC<ReaderProps> = ({ epubUrl, bookID, location }) => {
       const paragraphs = bookDoc?.querySelectorAll("p");
       const paragraph = Array.from(paragraphs).find((p) => p.getAttribute("data-cfi") === location);
       if(paragraph) {
-        paragraph.setAttribute("style", "background-color: yellow;");
         paragraph.scrollIntoView();
       }
       setdisplay(true);
     }
     
     rend.on("rendered", (section:Section) => {
-      console.log(section);
       setSection(section);
       if(!bookRef.current) return
       rend.getContents().document
       const bookIFrame = bookRef.current.querySelector("iframe") as HTMLIFrameElement;
       const bookDoc = bookIFrame.contentDocument;
+      bookDoc?.body.setAttribute("style", `background-color: ${bookBackground};`);
       if(!bookDoc) return;
+      console.log(bookDoc)
+
       const paragraphs = bookDoc?.querySelectorAll("p");
       paragraphs.forEach(paragraph => {
         paragraph.setAttribute("data-cfi", section.cfiFromElement(paragraph as HTMLElement));
+        paragraph.setAttribute("style", `background-color: ${bookBackground};`);
+        paragraph.setAttribute("style", `color: ${fontColor};`);
       });
       //if first time, scroll to location
       if(!display) {
@@ -64,10 +69,7 @@ const Reader: React.FC<ReaderProps> = ({ epubUrl, bookID, location }) => {
       }
 
       const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          entry.target.setAttribute("style", "border: none;");
-        });
-
+       
         const viewableEntries = entries.filter(entry => entry.isIntersecting);
     
         const topParagraph = viewableEntries.sort((a, b) => 
@@ -97,8 +99,6 @@ const Reader: React.FC<ReaderProps> = ({ epubUrl, bookID, location }) => {
     if(display) return
     if(!rendition) return;
     if(location) {
-      console.log("displaying location");
-      console.log(location);
       rendition.display(location);
     } else {
       rendition.display();

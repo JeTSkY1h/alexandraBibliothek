@@ -16,3 +16,10 @@ export const updateLocation = async (location:string, bookId:string) => {
         return res.data
     });
 }
+
+export const lastReadBooks = async (limit:number, offset:number) => {
+    return axios.get(`${baseUrl}/user-books/last-read?limit=${limit}&offset=${offset}`, {headers: {Authorization: `Bearer ${token}`}}).then((res)=>{
+        console.log(res);
+        return res.data
+    });
+}

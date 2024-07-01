@@ -1,7 +1,7 @@
-import { Box, Button, Flex } from "@chakra-ui/react"
+import { Box, Button, Flex, useColorModeValue } from "@chakra-ui/react"
 import BookGalery from "./components/Books/BookGalery"
 import { Navbar } from "./components/Nav/Navbar"
-import { useBooksLoader } from "./hooks/BookUtils"
+import { useBooksLoader, useLastReadBooksLoader } from "./hooks/BookUtils"
 import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons"
 import { useEffect, useState } from "react"
 import { useStateSearchParam } from "./hooks/useStateSearchParam"
@@ -9,10 +9,17 @@ import { useStateSearchParam } from "./hooks/useStateSearchParam"
 
 const Home = () => {
     const {books, loading, error, setLimit, setOffset, setSearch, search } = useBooksLoader()
+    const {books: lastReadBooks, loading:lastReadLoading, error:lastReadError} = useLastReadBooksLoader(6,0)
     const [page, setPage] = useStateSearchParam('page', '0')
-    
+    const background = useColorModeValue("url('papyrus.webp')", "url('papyrus-dark.webp')")
     
     useEffect(() => {
+        setPage("0")
+    }, [search])
+
+
+    useEffect(() => {
+        console.log("page", page)
         setOffset(parseInt(page)*10)
     }, [page])
 
@@ -29,15 +36,22 @@ const Home = () => {
 
 
     return (
-        <Box backgroundImage={"url('papyrus.webp')"} backgroundAttachment={"fixed"}>
+        <Box backgroundImage={background} backgroundAttachment={"fixed"}>
             <Navbar search={search} setSearch={setSearch}/>
-            <BookGalery books={books} loading={loading} error={!!error}/>
+            <Box p={6}>
+                {page === "0" && !!lastReadBooks && <BookGalery title={"Zuletzt gelesen"} books={lastReadBooks} loading={lastReadLoading} error={!!lastReadError}/>}
+                
+                <BookGalery title={"Alle Bücher"} books={books} loading={loading} error={!!error}/>
+            </Box>
 
-            <Flex w={"100%"} justifyContent={"center"} alignItems={"center"}>
-            <Button onClick={handlePrev}><ChevronLeftIcon/></Button>
-            <Box>{parseInt(page)+1}</Box>
-            <Button onClick={handleNext}><ChevronRightIcon/></Button>
-            </Flex>
+
+                {(page !== "0" || books.length >= 30) &&
+                <Flex w={"100%"} gap={6} justifyContent={"center"} alignItems={"center"} pb={6}>
+                    {<Button isDisabled={page === "0"} onClick={handlePrev}><ChevronLeftIcon/></Button>}
+                    <Box>{parseInt(page)+1}</Box>
+                    <Button isDisabled={books.length < 30} onClick={handleNext}><ChevronRightIcon/></Button>
+                </Flex>
+                }
 
         </Box>
     )

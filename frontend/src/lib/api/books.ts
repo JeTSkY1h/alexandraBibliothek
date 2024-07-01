@@ -3,6 +3,14 @@ import { baseUrl } from "./url"
 
 const token = localStorage.getItem("token");
 
+export const updateBook = async (book:any) => {
+    return axios.post(`${baseUrl}/books`, book, {headers: {
+        Authorization: `Bearer ${token}`
+    }}).then((res)=>{
+        return res.data
+    });
+}
+
 export const getBook = async (id:string) => {
     return axios.get(`${baseUrl}/books/${id}`, {headers: {Authorization: `Bearer ${token}`}}).then((res)=>{
         return res.data

@@ -12,8 +12,6 @@ export const JwToken = createParamDecorator((data: unknown, ctx: ExecutionContex
         throw new UnauthorizedException('Invalid token');
     }
 
-    console.log(request.headers.authorization.split(' ')[1]);
-
     return request.headers.authorization.split(' ')[1];
     
 

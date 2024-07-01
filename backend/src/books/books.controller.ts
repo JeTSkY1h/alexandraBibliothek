@@ -4,6 +4,7 @@ import { LimitPipe } from 'src/Pipes/LimitPipe';
 import { OffsetPipe } from 'src/Pipes/OffsetPipe';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { BooksValidator } from './books.validator';
+import { Pagination } from 'src/Decorators/Pagination';
 
 @Controller('books')
 export class BooksController {
@@ -12,6 +13,7 @@ export class BooksController {
     @Post()
     @UseGuards(AuthGuard)
     updateBook(@Body() book: BooksValidator){
+        console.log(book);
         return this.booksService.updateBook(book);
     }
 
@@ -22,6 +24,7 @@ export class BooksController {
     }
 
     @Get("path/:id")
+    @UseGuards(AuthGuard)
     getBookFilePath(@Param('id') id: string){
         console.log(id);
         return this.booksService.findBookFilePath(id);
@@ -38,9 +41,11 @@ export class BooksController {
     }
 
     @Get('search/:search')
-    searchBooks(@Param('search') search: string, @Query('limit', LimitPipe) limit: number, @Query('offset', OffsetPipe) offset: number ){
-        return this.booksService.searchBooks(search, limit, offset);
+    @UseGuards(AuthGuard)
+    searchBooks(@Param('search') search: string, @Pagination() pagination: {limit: number, offset:number} ){
+        return this.booksService.searchBooks(search, pagination.limit, pagination.offset);
     }
+
 
     
 }

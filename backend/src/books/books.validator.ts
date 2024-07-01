@@ -4,7 +4,7 @@ export class BooksValidator {
 
     @IsString()
     @IsNotEmpty()
-    id:string;
+    _id:string;
     
     @IsString()
     @IsNotEmpty()
