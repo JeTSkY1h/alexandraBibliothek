@@ -32,8 +32,9 @@ export const Navbar = ({search, setSearch}:NavbarProps) => {
               }}
             />
             <HStack spacing={8} alignItems={"center"}>
-                <Box color={"whitesmoke"} fontWeight={"semibold"}>Alexandra</Box>
-                { <Input value={search} onChange={handleSearch} placeholder="Suche"/>}
+                <Link to="/"><Box color={"whitesmoke"} fontWeight={"semibold"}>Alexandra</Box></Link>
+                
+                { !!setSearch && <Input value={search} onChange={handleSearch} placeholder="Suche"/>}
             </HStack>
             <Flex alignItems={"center"}>
                 <Menu>

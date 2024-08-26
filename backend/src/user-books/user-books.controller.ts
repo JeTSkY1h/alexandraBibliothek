@@ -25,4 +25,9 @@ export class UserBooksController {
         return this.userBooksService.getLastReadBooks(userId, pagination.limit, pagination.offset);
     }
 
+    @Post("rating")
+    async updateRating(@JwToken(GetUserPipe) userId:string, @Body() {rating, bookId}: {rating:number, bookId:string}) {
+        return this.userBooksService.updateRating(rating, userId, bookId);
+    }
+
 }

@@ -31,7 +31,7 @@ export class BooksService {
     }
 
     async getBooks(limit: number, offset: number) {
-        return await this.bookModel.find().skip(offset).limit(limit);
+        return await this.bookModel.find().sort({title: 1}).skip(offset).limit(limit);
     }
 
     async searchBooks(search:string, limit: number, offset: number) {

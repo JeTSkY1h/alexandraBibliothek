@@ -7,5 +7,6 @@ export interface Book {
     path: string;
     pubdate: string;
     author: string;
+    lastReadAt?: string;
 }
 

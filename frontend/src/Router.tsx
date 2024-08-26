@@ -7,6 +7,7 @@ import { isAdmin, isLoggedIn } from "./hooks/UserUtils";
 import EpupRender from "./components/Reader/EpubRender";
 import { useEffect, useState } from "react";
 import EditBook from "./pages/EditBook";
+import BookDetails from "./pages/BookDetails";
 
 
 const Router = () => {
@@ -25,7 +26,8 @@ const Router = () => {
       <Route path="login" element={loginState ? <Home/> : <Login/>}/>
       <Route path="register" element={<Register/>}/>
       <Route path="private" element={loginState ? <Home/> : <Navigate to="/login"/>}/>
-      <Route path="book/:id" element={<EpupRender/>}/>
+      <Route path="book/:id" element={<BookDetails/>}/>
+      <Route path="read/:id" element={<EpupRender/>}/>
       <Route path="edit/:id" element={ isAdminBool ? <EditBook/> : <Navigate to="/login"/>}/>
       <Route path="*" element={<ErrorPage/>}/>
       

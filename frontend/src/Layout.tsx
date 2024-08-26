@@ -39,7 +39,7 @@ const Home = () => {
         <Box backgroundImage={background} backgroundAttachment={"fixed"}>
             <Navbar search={search} setSearch={setSearch}/>
             <Box p={6}>
-                {page === "0" && !!lastReadBooks && <BookGalery title={"Zuletzt gelesen"} books={lastReadBooks} loading={lastReadLoading} error={!!lastReadError}/>}
+                {page === "0" && search === "" && !!lastReadBooks && <BookGalery title={"Zuletzt gelesen"} books={lastReadBooks} loading={lastReadLoading} error={!!lastReadError}/>}
                 
                 <BookGalery title={"Alle Bücher"} books={books} loading={loading} error={!!error}/>
             </Box>

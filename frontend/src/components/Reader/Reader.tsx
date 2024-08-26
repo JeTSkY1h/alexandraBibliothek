@@ -22,7 +22,7 @@ const Reader: React.FC<ReaderProps> = ({ epubUrl, bookID, location }) => {
   const fontColor = useColorModeValue("black", "white");
 
 
-  useEffect(  () => {
+    useEffect(  () => {
     if(!bookRef.current) {
       setError('No ref found');
       return;

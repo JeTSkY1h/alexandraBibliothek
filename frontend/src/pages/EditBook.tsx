@@ -9,7 +9,7 @@ import { useEffect, useState } from "react"
 
 const EditBook = () => {
     const {id} = useParams();
-    const {book, loading, error} = useBookLoader(id||"");
+    const {book, isLoading, error} = useBookLoader(id||"");
     const {update, error: updateError, loading: updateLoading} = useBookupdater();
 
     const [title, setTitle] = useState(book?.title);

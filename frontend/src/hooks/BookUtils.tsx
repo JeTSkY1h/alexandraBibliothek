@@ -30,17 +30,17 @@ export const useBookupdater = () => {
 export const useBookLoader = (id: string) => {
     const [book, setBook] = useState<Book | null>(null);
     const [error, setError] = useState<string | null>(null);
-    const [loading, setLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
 
     const loadBook = useCallback(() => {
-        setLoading(true);
+        setIsLoading(true);
         getBook(id).then((data) => {
             setBook(data);
-            setLoading(false);
+            setIsLoading(false);
         }).catch((e) => {
             console.log(e);
             setError(e);
-            setLoading(false);
+            setIsLoading(false);
         });
     }, [id])
 
@@ -51,7 +51,7 @@ export const useBookLoader = (id: string) => {
     return {
         book,
         error,
-        loading
+        isLoading
     }
 
 }

@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from "react"
 import Reader from "./Reader"
 import { Center, Spinner } from "@chakra-ui/react"
 import { useUserBookLoader } from "../../hooks/UserBookUtils"
-import { Navbar } from "../Nav/Navbar"
 
 const EpupRender = () => {
     

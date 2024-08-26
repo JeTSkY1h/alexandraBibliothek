@@ -12,8 +12,13 @@ export class UserBooksService {
 
     async getLastReadBooks(userId: string, limit:number, offset:number) {
         const userBooks = await this.userBookModel.find({userId: userId}).sort({lastOpenedAt: "desc"}).skip(offset).limit(limit);
+        console.log(userBooks);
         const books = await this.booksService.getBooksByIds(userBooks.map((userBook) => userBook.bookId));
-        return books
+        const sortedBooks: Array<any> = books.map((book: any) => {
+            book.lastReadAt = userBooks.find((userBook) => userBook.bookId === String(book._id))?.lastOpenedAt;
+            return book;
+        }).sort((a, b) => (a.lastReadAt > b.lastReadAt ? -1 : 1));
+        return sortedBooks
     }
 
     async getUserBooks(userId: string, limit:number, offset:number) {
@@ -60,7 +65,11 @@ export class UserBooksService {
         return this.userBookModel.updateOne({bookId: bookId, userId: userId}, userBook);
     }
 
-
-
+    async updateRating(rating:number, userId:string, bookId:string) {
+        const userBook = await this.userBookModel.findOne({bookId: bookId, userId: userId});
+        userBook.rating = rating;
+        return this.userBookModel.updateOne({bookId: bookId, userId: userId}, userBook);
+    }
+    
 
 }

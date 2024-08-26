@@ -23,3 +23,10 @@ export const lastReadBooks = async (limit:number, offset:number) => {
         return res.data
     });
 }
+
+export const updateRating = async (rating:number, bookId:string) => {
+    return axios.post(`${baseUrl}/user-books/rating`, {rating, bookId}, {headers: {Authorization: `Bearer ${token}`}}).then((res)=>{
+        console.log(res);
+        return res.data
+    });
+}
