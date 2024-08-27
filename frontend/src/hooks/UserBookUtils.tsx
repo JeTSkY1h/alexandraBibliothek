@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { openBook, updateLocation } from "../lib/api/userBook";
+import { openBook, updateLocation, updateRating } from "../lib/api/userBook";
 import { IUserBookDTO } from "../lib/types/UserBook";
 
 export const useUserBookLoader = (bookId:string) => {
@@ -58,4 +58,35 @@ export const useUserBookUtils = (bookID:string) => {
     }, [location])
 
     return {setLocation, isLoading, isError}
+}
+
+export const useRatingUtils = (bookID:string) => {
+    const [rating, setRating] = useState<number>(0);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [isError, setIsError] = useState<boolean>(false);
+
+    useEffect(()=>{
+        
+    })
+
+    const handleRatingUpdate = useCallback(() => {
+        if(!rating) return;
+        if(isLoading) return;
+        setIsLoading(true);
+        updateRating(rating, bookID).then(()=>{
+            setIsLoading(false);
+        }).catch((e)=>{
+            setIsError(true);
+            setIsLoading(false);
+            console.log(e);
+        })
+    }, [rating]);
+
+
+
+    useEffect(()=>{
+        handleRatingUpdate();
+    }, [rating])
+
+    return {setRating, isLoading, isError}
 }

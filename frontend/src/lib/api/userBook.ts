@@ -30,3 +30,11 @@ export const updateRating = async (rating:number, bookId:string) => {
         return res.data
     });
 }
+
+export const getRating = async (bookId:string) => {
+    return axios.get(`${baseUrl}/user-books/rating?bookId=${bookId}`, {headers: {Authorization: `Bearer ${token}`}}).then((res)=>{
+        console.log(res);
+        return res.data
+    });
+}
+

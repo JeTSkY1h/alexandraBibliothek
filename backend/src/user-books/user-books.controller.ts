@@ -30,4 +30,9 @@ export class UserBooksController {
         return this.userBooksService.updateRating(rating, userId, bookId);
     }
 
+    @Get("rating")
+    async getRating(@JwToken(GetUserPipe) userId:string, @Pagination() {bookId}: {bookId:string}) {
+        return this.userBooksService.getBookData(bookId);
+    }
+
 }

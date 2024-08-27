@@ -17,11 +17,7 @@ export const userBookShema = new Schema(
         },
         rating: {
         type: Number,
-        },
-        review: {
-            type: String,
-            maxlength: 1500,
-        },
+        }, 
         startedAt: {
             required: true,
             type: Date,

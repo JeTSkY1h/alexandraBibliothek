@@ -70,6 +70,40 @@ export class UserBooksService {
         userBook.rating = rating;
         return this.userBookModel.updateOne({bookId: bookId, userId: userId}, userBook);
     }
+
+    async getBookData(bookId: string) {
+        const userBooks = await this.userBookModel.find({bookId: bookId});
+        const ratings = userBooks.map((userBook) => userBook.rating).filter((rating) => rating !== undefined);
+        const sum = ratings.reduce((a, b) => a + b, 0);
+        const avg = sum / ratings.length;
+        return {
+            ratings: ratings,
+            avgRating: avg,
+            userCount: ratings.length,
+        }
+    }
+
+    async getMostReadBooks(limit:number, offset:number) {
+        const userBooks = await this.userBookModel.aggregate([
+            {
+                $group: {
+                    _id: "$bookId",
+                    count: { $sum: 1 }
+                }
+            },
+            {
+                $sort: {count: -1}
+            },
+            {
+                $skip: offset
+            },
+            {
+                $limit: limit
+            }
+        ]);
+        const books = await this.booksService.getBooksByIds(userBooks.map((userBook) => userBook._id));
+        return books;
+    }
     
 
 }
