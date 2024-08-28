@@ -30,15 +30,20 @@ export class BooksService {
         return await this.bookModel.find({_id: {$in: ids}});
     }
 
-    async getBooks(limit: number, offset: number) {
-        return await this.bookModel.find().sort({title: 1}).skip(offset).limit(limit);
+    async getBooks(limit: number, offset: number): Promise<Book[]> {
+        const limitNumber = Number(limit);
+        const offsetNumber = Number(offset);
+
+        const books = await this.bookModel.find().sort({title: 1, _id: 1}).skip(offsetNumber).limit(limitNumber);
+    
+        return books;
     }
 
     async searchBooks(search:string, limit: number, offset: number) {
         const books = await this.bookModel.find({$or: [{title: {$regex: search, $options: 'i'}}, {author: {$regex: search, $options: 'i'}}]})
             .sort({title: 1})
+            .skip(offset)
             .limit(limit)
-            .skip(offset);
         return books;
     }
 

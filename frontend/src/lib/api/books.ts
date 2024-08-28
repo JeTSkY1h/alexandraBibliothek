@@ -27,7 +27,7 @@ export const searchBooks = async (limit:number, offset:number, search:string) =>
 
 export const getBooks = async (limit?:number, offset?:number, ) => {
     const limitStr = limit ? "?limit=" + limit : "";
-    const offsetStr = offset ? "&offset="+offset : "";
+    const offsetStr = offset ? "&offset="+offset : "&offset=0";
     
     return axios.get(`${baseUrl}/books` + limitStr + offsetStr, {headers: {Authorization: `Bearer ${token}`}}).then((res)=>{
         return res.data

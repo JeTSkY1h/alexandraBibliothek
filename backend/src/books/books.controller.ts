@@ -19,8 +19,8 @@ export class BooksController {
 
     @Get()
     @UseGuards(AuthGuard)
-    getBooks(@Query('limit', LimitPipe) limit: number, @Query('offset', OffsetPipe) offset: number){
-        return this.booksService.getBooks(limit, offset);
+    getBooks(@Pagination() pagination: {limit: number, offset:number}){
+        return this.booksService.getBooks(pagination.limit, pagination.offset);
     }
 
     @Get("path/:id")

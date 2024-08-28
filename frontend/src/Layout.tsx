@@ -8,19 +8,17 @@ import { useStateSearchParam } from "./hooks/useStateSearchParam"
 
 
 const Home = () => {
-    const {books, loading, error, setLimit, setOffset, setSearch, search } = useBooksLoader()
+    const {setPage:setLoaderPage, books, loading, error, setSearch, search } = useBooksLoader()
     const {books: lastReadBooks, loading:lastReadLoading, error:lastReadError} = useLastReadBooksLoader(6,0)
-    const [page, setPage] = useStateSearchParam('page', '0')
+    const queryParams = new URLSearchParams(location.search);
+    const initialPage = queryParams.get('page') || '0';
+    console.log("initialPage", initialPage)
+    const [page, setPage] = useStateSearchParam('page', initialPage)
     const background = useColorModeValue("url('papyrus.webp')", "url('papyrus-dark.webp')")
-    
-    useEffect(() => {
-        setPage("0")
-    }, [search])
-
 
     useEffect(() => {
         console.log("page", page)
-        setOffset(parseInt(page)*10)
+        setLoaderPage(Number(page))
     }, [page])
 
     const handleNext = () => {

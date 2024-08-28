@@ -123,15 +123,16 @@ export const useLastReadBooksLoader = (limit?:number, page?:number) => {
     
 
 
-export const useBooksLoader = (limit?:number, page?:number) => {
+export const useBooksLoader = (limit?:number) => {
+    const [page, setPage] = useState<number>(0);
     const [books, setBooks] = useState<Book[]>([])
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [limitStsate, setLimit] = useState<number>(limit||30);
-    const [offset, setOffset] = useState<number>((page||0)*(limitStsate));
     const [search, setSearch] = useState<string>("");
 
     const loadBooks = useCallback(() => {
+        const offset = page*limitStsate;
         if(loading) return
         setLoading(true);
         if(search) {
@@ -153,20 +154,19 @@ export const useBooksLoader = (limit?:number, page?:number) => {
             setError(e);
             setLoading(false);
         });
-    }, [limitStsate, offset, search])
+    }, [limitStsate, search, page])
 
     useEffect(() => {
         loadBooks();
     }, [loadBooks, search])
 
     return {
+        setPage,
         books,
         error,
         loading,
         limit,
         setLimit,
-        offset,
-        setOffset,
         search,
         setSearch
     }

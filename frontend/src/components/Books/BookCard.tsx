@@ -2,6 +2,7 @@ import { Badge, Box, Button, Flex, Image, Text, Tooltip, useColorModeValue } fro
 import { getCoverPath } from "../../hooks/BookUtils"
 import { Book } from "../../lib/types/Book"
 import { Link } from "react-router-dom"
+import { MdEdit } from "react-icons/md";
 
 const BookCard = ({ book }: { book: Book }) => {
 
@@ -27,7 +28,7 @@ const BookCard = ({ book }: { book: Book }) => {
                 right="5px"
                 opacity="0"
                 _groupHover={{opacity: "1"}}>
-                Edit
+                <MdEdit size={24}/>
 
             </Button>
             </Link>

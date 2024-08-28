@@ -71,8 +71,11 @@ const BookDetails = () => {
                                 <Link to={`/edit/${book._id}`}>
                                     <Button colorScheme="blue">Edit</Button>
                                 </Link>
-                                <Link to="/books">
+                                <Link to="/">
                                     <Button colorScheme="gray">Back to List</Button>
+                                </Link>
+                                <Link to={`/read/${book._id}`}>
+                                    <Button colorScheme="green">Read</Button>
                                 </Link>
                             </Flex>
                         </Box>
