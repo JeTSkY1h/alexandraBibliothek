@@ -12,8 +12,8 @@ const BookCard = ({ book }: { book: Book }) => {
         <Box
             role="group"
             as="article"
-            w={{base: 100, md: 200}}
-            h={{base: 200, md: 400}}
+            w={{base: 150, md: 200}}
+            h={{base: 275, md: 400}}
             overflow={"hidden"}
             borderRadius={"lg"}
             boxShadow={"md"} 
@@ -34,17 +34,17 @@ const BookCard = ({ book }: { book: Book }) => {
             </Link>
             <Link to={`/book/${book._id}`}>
                 <Flex justify="center" alignItems={"items-center"}>
-                    <Image src={getCoverPath(book)} w="full" h={{base: 150, md:300}} alt={book.title} objectFit={"cover"} />
+                    <Image src={getCoverPath(book)} w="full" h={{base: 200, md:300}} alt={book.title} objectFit={"cover"} />
                 </Flex>
             </Link>
-            <Box p="1rem">
+            <Box p={{base:"0.2rem", md:"1rem"}}>
                 <Box>
-                    <Badge borderRadius="full" px="2" colorScheme="teal">
+                    <Badge fontSize={{base: 8, md: "small"}} borderRadius="full" px={{base: 0, md: 2}} colorScheme="teal">
                         {book.author}
                     </Badge>
                 </Box>
 
-                <Box mt="1" as="h4" lineHeight="tight" isTruncated>
+                <Box fontSize={{base: 8, md: "small"}} mt="1" as="h4" lineHeight="tight" isTruncated>
                     <Tooltip label={book.title}><Text>{book.title}</Text></Tooltip>
                 </Box>
             </Box>
