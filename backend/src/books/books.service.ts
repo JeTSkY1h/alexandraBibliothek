@@ -34,8 +34,29 @@ export class BooksService {
         const limitNumber = Number(limit);
         const offsetNumber = Number(offset);
 
-        const books = await this.bookModel.find().sort({title: 1, _id: 1}).skip(offsetNumber).limit(limitNumber);
-    
+        //const books = await this.bookModel.find().sort({title: 1, _id: 1}).skip(offsetNumber).limit(limitNumber);
+        const books = await this.bookModel.aggregate([
+            {
+                $facet: {
+                    books: [
+                        {
+                            $sort: {title: 1}
+                        },
+                        {
+                            $skip: offsetNumber
+                        },
+                        {
+                            $limit: limitNumber
+                        }
+                    ],
+                    count: [
+                        {
+                            $count: "count"
+                        }
+                    ]
+                }
+            }
+        ])
         return books;
     }
 

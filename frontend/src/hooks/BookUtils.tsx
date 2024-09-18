@@ -130,6 +130,7 @@ export const useBooksLoader = (limit?:number) => {
     const [loading, setLoading] = useState(false);
     const [limitStsate, setLimit] = useState<number>(limit||30);
     const [search, setSearch] = useState<string>("");
+    const [bookCount, setBookCount] = useState<number>(0);
 
     const loadBooks = useCallback(() => {
         const offset = page*limitStsate;
@@ -137,7 +138,9 @@ export const useBooksLoader = (limit?:number) => {
         setLoading(true);
         if(search) {
             searchBooks(limitStsate, offset, search).then((data) => {
+                console.log(data);
                 setBooks(data);
+                setBookCount(0)
                 setLoading(false);
             }).catch((e) => {
                 console.log(e);
@@ -147,7 +150,10 @@ export const useBooksLoader = (limit?:number) => {
             return;
         }
         getBooks(limitStsate, offset).then((data) => {
-            setBooks(data);
+            console.log(data[0]);
+
+            setBooks(data[0].books);
+            setBookCount(data[0].count[0].count);
             setLoading(false);
         }).catch((e) => {
             console.log(e);
@@ -168,7 +174,8 @@ export const useBooksLoader = (limit?:number) => {
         limit,
         setLimit,
         search,
-        setSearch
+        setSearch,
+        pageCount: Math.ceil(bookCount/limitStsate),
     }
 }
 
