@@ -32,7 +32,7 @@ const Paginator = ({page, length, pages, setPage}:PaginatorProps) => {
             )
         }
 
-        for (let i = Math.max(1, page - 5); i < Math.min(Math.max(page + 5, 11), pages); i++) {
+        for (let i = Math.max(1, page - 5); i < Math.min(Math.max(page + 6, 11), pages); i++) {
             pageButtons.push(
                 renderbutton(i, page)
             );

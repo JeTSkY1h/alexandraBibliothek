@@ -24,11 +24,9 @@ const BookDetails = () => {
 
     const handleRating = (index: number) => () => {
         console.log("Rating", index + 1);
+        setRating(index + 1);
 
     }
-
-
-
 
     return (
         <>
@@ -63,7 +61,7 @@ const BookDetails = () => {
                             <Flex mb={4} onMouseLeave={handleMouseLeave}>
                                 {Array(5).fill(0).map((_, index) => (
                                     <Box key={index} onClick={handleRating(index)} onMouseEnter={() => handleMouseEnter(index)}>
-                                        {index <= hoveredIndex ? <FaStar size={24} /> : <FaRegStar size={24} />}
+                                        {index <= hoveredIndex || index < rating ? <FaStar size={24} /> : <FaRegStar size={24} />}
                                     </Box>
                                 ))}
                             </Flex>

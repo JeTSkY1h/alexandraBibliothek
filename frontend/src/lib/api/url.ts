@@ -1,1 +1,1 @@
-export const baseUrl = "http://localhost:3000"
+export const baseUrl = "http://192.168.179.121:3000"

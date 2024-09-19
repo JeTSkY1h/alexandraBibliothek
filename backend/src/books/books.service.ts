@@ -1,3 +1,4 @@
+import { promises as ps } from 'fs';
 import * as fs from "fs";
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
@@ -86,34 +87,54 @@ export class BooksService {
         return filePath;
     }
 
-    async reMigrateDB() {
-        const files = fs.readdirSync(join(__dirname, '..','..', '/uploads/archiv'));
+    private async getSortedBookFiles() {
+        const files = await ps.readdir(join(__dirname, '..','..', '/uploads/archiv'));
         //sort files by alphabetical by name
-        const sortedfiles = files.sort(new Intl.Collator("sv").compare);
-        for await (const file of sortedfiles) {
-            if(file.endsWith(".pdf")){
-                continue;
-            }
-            
+        const filteredFiles = files.filter(file => file.endsWith(".epub"));
+        const sortedfiles = filteredFiles.sort((a, b) => a.localeCompare(b));
+        return sortedfiles;
+    }
+
+    private async filePathExists(filePath: string): Promise<boolean> {
+        console.log("checking file", filePath);
+        const count = await this.bookModel.countDocuments({ path: filePath });
+        console.log("count", count, filePath);
+        return count > 0;
+    }
+
+    private async titleExists(title: string): Promise<boolean> {
+        console.log("checking title", title);
+        const count = await this.bookModel.countDocuments({ title });
+        return count > 0;
+    }
+
+    async reMigrateDB() {
+        const sortedFiles = await this.getSortedBookFiles();
+        const filteredFiles = await Promise.all(sortedFiles.filter(async (file) => {
+            return !await this.filePathExists(file);
+        }));
+        console.log("filteredFiles", filteredFiles);
+        for await (const file of filteredFiles) {
+  
             const filePath = join(__dirname, '..','..', '/uploads/archiv', file);
-            const isDuplicate = await this.bookModel.findOne({path: filePath.split('/').slice(-1)[0]})
-            if(isDuplicate) {
-                console.log("book " + file +" already exists");
-                continue;
-            }
+
             console.log("parsing file " + file);
             const book = new Epub(filePath);
             const bookDoc:any = {};
 
-            await new Promise<void>((resolve, reject) => {
+            const processBook = new Promise<void>((resolve, reject) => {
                 book.on("end", async () => {
                     console.log("opening book " + book.metadata.title);
-
+                    const exists = await this.titleExists(book.metadata.title || file.replace(".epub", ""));
+                    if(exists) {
+                        console.log("book already exists");
+                        resolve();
+                        return;
+                    }
                     const imageKeys = Object.keys(book.manifest).filter(key => 
                         book.manifest[key].mediaType?.startsWith('image/') || 
                         book.manifest[key]['media-type']?.startsWith('image/')
                     );
-                    console.log("imageKeys", imageKeys);
                     let cover = imageKeys[0];
                     
                     const metadata = book.metadata;
@@ -144,7 +165,7 @@ export class BooksService {
                             const picPath = join(__dirname, '..','..', '/uploads/archiv/covers/',  sanitizedTitle + "." + ext);
                             try {
                                 console.log("writing file " + picPath)
-                                fs.writeFileSync(picPath, data);
+                                await ps.writeFile(picPath, data);
                                 cover = picPath.split('/').slice(-1)[0];
                                 resolve(cover);
                             } catch (error) {
@@ -166,31 +187,33 @@ export class BooksService {
                     bookDoc.pubdate = bookObj?.metadata.date || new Date(Date.now()).toDateString();
                     bookDoc.cover = coverPrmoise;
                     console.log("bookDoc", bookDoc)
+
+                 
                     try {
-                        const existingBook = await this.bookModel.findOne({path: filePath.split('/').slice(-1)[0]});
-                        if(!existingBook) {
-                            console.log("cover", bookDoc.cover)
-                            try {
-                            await this.bookModel.create(bookDoc).then(()=>{
-                                console.log("finished file " + bookDoc.title + " successfully")
-                                resolve();
-                            });}
-                            catch (error) {
-                                console.log("error writing file", error)
-                                resolve();
-                            }
-                        }
-                        else {
-                            console.log("book already exists")
+        
+                        console.log("cover", bookDoc.cover)
+                        try {
+                        await this.bookModel.create(bookDoc).then(()=>{
+                            console.log("finished file " + bookDoc.title + " successfully")
+                            resolve();
+                        });}
+                        catch (error) {
+                            console.log("error writing file", error)
                             resolve();
                         }
                             
                     } catch (error) {
                         console.log(error);
-                        reject();
+                        resolve();
                     }
             
                 })
+                book.on("error", (error) => {
+                    console.log("error parsing book xD rofl lol", error);
+                    reject();
+                    return
+                });
+
                 try {
                     book.parse();
                 } catch (error) {
@@ -198,6 +221,19 @@ export class BooksService {
                     resolve();
                 }
             });
+
+            const timeout = new Promise<void>((resolve, reject) => {
+                setTimeout(() => {
+                    console.log("timeout");
+                    reject();
+                }, 10000);
+            });
+
+            await Promise.race([processBook, timeout]).catch((e) => {
+                console.log("error processing book", e);
+            });
+
+
         };
 
         return "done";

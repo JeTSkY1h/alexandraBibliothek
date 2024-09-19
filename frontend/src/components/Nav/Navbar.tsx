@@ -9,9 +9,7 @@ interface NavbarProps {
 }
 
 export const Navbar = ({search, setSearch}:NavbarProps) => {
-    const loginState = isLoggedIn()
-    const {isOpen, onToggle} = useDisclosure()
-    
+    const loginState = isLoggedIn()    
     const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
         if(!setSearch) return;
         setSearch(e.target.value)
@@ -20,17 +18,7 @@ export const Navbar = ({search, setSearch}:NavbarProps) => {
     return  (
         <Box bgColor="teal.800" px={16}>
           <Flex h={16} alignItems={"center"} justifyContent={"space-between"}>
-            <IconButton 
-              size={'md'}
-              display={{ md: "none" }}
-              icon={isOpen ? <CloseIcon /> : <HamburgerIcon />} 
-              aria-label={'Toggle Menu'}
-              onClick={onToggle}
-              bgColor="action"
-              _hover={{
-                bgColor: "teal.200"
-              }}
-            />
+            
             <HStack spacing={8} alignItems={"center"}>
                 <Link to="/"><Box color={"whitesmoke"} fontWeight={"semibold"}>Alexandra</Box></Link>
                 

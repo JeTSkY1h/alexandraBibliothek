@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query } from '@nestjs/common';
 import {userBooksDTO} from "./user-books.validator";
 import { UserBooksService } from './user-books.service';
 import { JwToken } from 'src/Decorators/JwToken';
@@ -31,7 +31,7 @@ export class UserBooksController {
     }
 
     @Get("rating")
-    async getRating(@JwToken(GetUserPipe) userId:string, @Pagination() {bookId}: {bookId:string}) {
+    async getRating(@JwToken(GetUserPipe) userId:string, @Query() {bookId}: {bookId:string}) {
         return this.userBooksService.getBookData(bookId);
     }
 

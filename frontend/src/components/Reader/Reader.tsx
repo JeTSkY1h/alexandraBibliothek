@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import ePub from 'epubjs';
 import {Rendition} from 'epubjs';
-import { Box, Button, useColorMode, useColorModeValue} from '@chakra-ui/react';
+import { Box, Button, Progress, useColorModeValue} from '@chakra-ui/react';
 import { useUserBookUtils } from '../../hooks/UserBookUtils';
 import Section from 'epubjs/types/section';
 
@@ -16,23 +16,34 @@ const Reader: React.FC<ReaderProps> = ({ epubUrl, bookID, location }) => {
   const [section, setSection] = useState<Section | null >(null);
   const [error, setError] = useState("");
   const [rendition, setRendition] = useState<Rendition | null>(null);
+  const [progress, setProgress] = useState(0);
   const [display, setdisplay] = React.useState(false);
   const {setLocation} = useUserBookUtils(bookID);
   const bookBackground = useColorModeValue("white", "#1A202C");
   const fontColor = useColorModeValue("black", "white");
+  const [book, setBook] = useState<ePub.Book|null>(null);
 
-
-    useEffect(  () => {
+  useEffect(  () => {
     if(!bookRef.current) {
       setError('No ref found');
       return;
     }
     if(rendition) return;
-    const book = ePub(epubUrl);
-    const rend = book.renderTo(bookRef.current, {
+    const newBook = ePub(epubUrl);
+    setBook(newBook);
+    const rend = newBook.renderTo(bookRef.current, {
       manager: "default",
       flow: "scrolled-doc",
       width: "100%"})
+    console.log(newBook)
+
+    newBook.ready.then(() => {
+      console.log(newBook)
+      newBook.locations.generate(1024).then((locations) => {
+        console.log(locations)
+      });
+      
+    });
 
     const scrollToElement = () => {
       if(!bookRef.current) return
@@ -40,6 +51,7 @@ const Reader: React.FC<ReaderProps> = ({ epubUrl, bookID, location }) => {
       const bookDoc = bookIFrame.contentDocument;
       if(!bookDoc) return;
       const paragraphs = bookDoc?.querySelectorAll("p");
+
       const paragraph = Array.from(paragraphs).find((p) => p.getAttribute("data-cfi") === location);
       if(paragraph) {
         paragraph.scrollIntoView();
@@ -53,12 +65,14 @@ const Reader: React.FC<ReaderProps> = ({ epubUrl, bookID, location }) => {
       rend.getContents().document
       const bookIFrame = bookRef.current.querySelector("iframe") as HTMLIFrameElement;
       const bookDoc = bookIFrame.contentDocument;
+
       bookDoc?.body.setAttribute("style", `background-color: ${bookBackground};`);
       if(!bookDoc) return;
       console.log(bookDoc)
 
       const paragraphs = bookDoc?.querySelectorAll("p");
-      paragraphs.forEach(paragraph => {
+      paragraphs.forEach((paragraph, i) => {
+        paragraph.setAttribute("data-index",i.toString());
         paragraph.setAttribute("data-cfi", section.cfiFromElement(paragraph as HTMLElement));
         paragraph.setAttribute("style", `background-color: ${bookBackground};`);
         paragraph.setAttribute("style", `color: ${fontColor};`);
@@ -71,12 +85,17 @@ const Reader: React.FC<ReaderProps> = ({ epubUrl, bookID, location }) => {
       const observer = new IntersectionObserver((entries) => {
        
         const viewableEntries = entries.filter(entry => entry.isIntersecting);
-    
+        console.log(viewableEntries);
         const topParagraph = viewableEntries.sort((a, b) => 
           a.boundingClientRect.top - b.boundingClientRect.top
-        )[0].target;
-
+        )[0]?.target;
+        if(!topParagraph) return;
         const cfi = topParagraph.getAttribute("data-cfi");
+        const index = parseInt(topParagraph.getAttribute("data-index") || "0");
+        const progress = (index + 2) / paragraphs.length * 100;
+        setProgress(progress);
+
+
 
         if(cfi) {
           setLocation(cfi);
@@ -93,6 +112,7 @@ const Reader: React.FC<ReaderProps> = ({ epubUrl, bookID, location }) => {
       })
 
     setRendition(rend);
+  
   }, [epubUrl]);
 
   useEffect(() => {
@@ -120,14 +140,56 @@ const Reader: React.FC<ReaderProps> = ({ epubUrl, bookID, location }) => {
 
   return (
     <>
-        <Box width={"100vw"} display={"flex"} justifyContent={"center"} flexDirection={"row"}>
-          <Button left={"1px"} top={"1px"} pos={"fixed"} height={"100vh"} onClick={prevPage}>Prev</Button>
-          <Box ref={bookRef} minW={"800px"} padding={"4rem"}/>
-          <Button pos={"fixed"} right={"1px"} top={"1px"} h={"100vh"} onClick={nextPage}>Next</Button>
-        </Box>
-   </>
-    
-    );
-}
+      <Box
+        width="100vw"
+        display="flex"
+        justifyContent="center"
+        flexDirection={{ base: 'column', md: 'row' }}
+        alignItems="center"
+        padding="1rem"
+      >
+        <Button
+          left="1px"
+          bottom="1px"
+          pos="fixed"
+          height={{ base: '60px', md: '100vh' }}
+          width={{ base: '50%', md: 'auto' }}
+          onClick={prevPage}
+          zIndex={1}
+        >
+          Prev
+        </Button>
+        <Box
+          width={"100%"}
+          position={"fixed"}
+          top={0}
+          left={0}
+          zIndex={2}
+          >
+            <Progress value={progress} size="xs" w={'100%'} colorScheme="teal" />
+          </Box>
+        <Box
+          ref={bookRef}
+          minW={{ base: '100%', md: '800px' }}
+          padding={{base:"0", md:"4rem"}}
+          mb={{ base: '60px', md: '0' }}
+          flex="1"
+          zIndex={0}
+        />
+        <Button
+          pos="fixed"
+          right="1px"
+          bottom="1px"
+          height={{ base: '60px', md: '100vh' }}
+          width={{ base: '50%', md: 'auto' }}
+          onClick={nextPage}
+          zIndex={1}
+        >
+          Next
+        </Button>
+      </Box>
+    </>
+  );
+};
 
 export default Reader;

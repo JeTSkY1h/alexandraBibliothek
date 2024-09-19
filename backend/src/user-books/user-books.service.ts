@@ -72,7 +72,9 @@ export class UserBooksService {
     }
 
     async getBookData(bookId: string) {
+        console.log("Getting book data for bookId: ", bookId);
         const userBooks = await this.userBookModel.find({bookId: bookId});
+        console.log(userBooks);
         const ratings = userBooks.map((userBook) => userBook.rating).filter((rating) => rating !== undefined);
         const sum = ratings.reduce((a, b) => a + b, 0);
         const avg = sum / ratings.length;
