@@ -1,7 +1,6 @@
-import { CloseIcon, HamburgerIcon } from "@chakra-ui/icons"
-import { Box, Flex, IconButton, HStack, useDisclosure, Menu, MenuButton, Button, MenuList, MenuItem, Input } from "@chakra-ui/react"
+import { Box, Flex, HStack, Menu, MenuButton, Button, MenuList, MenuItem, Input } from "@chakra-ui/react"
 import { Link } from "react-router-dom"
-import { isLoggedIn, logoutUser } from "../../hooks/UserUtils";
+import { logoutUser } from "../../hooks/UserUtils";
 
 interface NavbarProps {
     search?: string;
@@ -9,7 +8,6 @@ interface NavbarProps {
 }
 
 export const Navbar = ({search, setSearch}:NavbarProps) => {
-    const loginState = isLoggedIn()    
     const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
         if(!setSearch) return;
         setSearch(e.target.value)

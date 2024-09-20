@@ -110,133 +110,133 @@ export class BooksService {
 
     async reMigrateDB() {
         const sortedFiles = await this.getSortedBookFiles();
-        const filteredFiles = await Promise.all(sortedFiles.filter(async (file) => {
-            return !await this.filePathExists(file);
-        }));
-        console.log("filteredFiles", filteredFiles);
-        for await (const file of filteredFiles) {
-  
-            const filePath = join(__dirname, '..','..', '/uploads/archiv', file);
-
-            console.log("parsing file " + file);
-            const book = new Epub(filePath);
-            const bookDoc:any = {};
-
-            const processBook = new Promise<void>((resolve, reject) => {
-                book.on("end", async () => {
-                    console.log("opening book " + book.metadata.title);
-                    const exists = await this.titleExists(book.metadata.title || file.replace(".epub", ""));
-                    if(exists) {
-                        console.log("book already exists");
+    
+        for (const file of sortedFiles) {
+            const exists = await this.filePathExists(file);
+            if (exists) {
+                console.log("Book already exists");
+                continue;
+            }
+            const filePath = join(__dirname, '..', '..', '/uploads/archiv', file);
+            console.log("Processing file: " + file);console.log("filteredFiles", sortedFiles);
+    
+            try {
+                await this.processEpubFile(filePath, file);
+            } catch (error) {
+                console.error(`Failed to process file ${file}:`, error);
+                continue// Continue to the next file
+            }
+        }
+    
+        return "Migration completed";
+    }
+    
+    private async processEpubFile(filePath: string, file: string): Promise<void> {
+        return new Promise<void>(async (resolve) => {
+            let book: any;
+            try {
+                book = new Epub(filePath);
+            } catch (error) {
+                console.error(`Error initializing Epub for ${file}:`, error);
+                resolve();
+                return;
+            }
+    
+            const bookDoc: any = {};
+    
+            const timeoutId = setTimeout(() => {
+                console.log(`Timeout processing ${file}. Moving to next file.`);
+                resolve();
+            }, 30000); // 30 seconds timeout
+    
+            book.on("end", async () => {
+                clearTimeout(timeoutId);
+                try {
+                    console.log("Opening book: " + (book.metadata?.title || file));
+                    const exists = await this.titleExists(book.metadata?.title || file.replace(".epub", ""));
+                    if (exists) {
+                        console.log("Book already exists");
                         resolve();
                         return;
                     }
-                    const imageKeys = Object.keys(book.manifest).filter(key => 
-                        book.manifest[key].mediaType?.startsWith('image/') || 
-                        book.manifest[key]['media-type']?.startsWith('image/')
-                    );
-                    let cover = imageKeys[0];
-                    
-                    const metadata = book.metadata;
-
-                    const coverPrmoise = await new Promise<string>((resolve, reject) => {
-                        book.getImage(cover, async (err, data, mimeType) => {
-                            if(mimeType === "undefined") {
-                                console.log("no cover found");
-                                cover = "";
-                                resolve(cover);
-                                return
-                            }
-                            if(err) {
-                                console.log("get Iamge error", err);
-                                cover = ""
-                                resolve(cover);
-                                return;
-                            }
-          
-                            const ext = mimeType.split('/')[1];
-
-                            if(!metadata.title) {
-                                metadata.title = file.replace(".epub", "");
-                            }
-
-                            const sanitizedTitle = metadata.title.replace(/[^a-zA-Z0-9]/g, '');
-                        
-                            const picPath = join(__dirname, '..','..', '/uploads/archiv/covers/',  sanitizedTitle + "." + ext);
-                            try {
-                                console.log("writing file " + picPath)
-                                await ps.writeFile(picPath, data);
-                                cover = picPath.split('/').slice(-1)[0];
-                                resolve(cover);
-                            } catch (error) {
-                                console.log("error writing file", error)
-                                cover = "";
-                                resolve(cover);
-                            }
-                            console.log(cover)
-                        });
-                    }); 
-                    
-                    const bookObj:any = book
-                
-                    
-                    bookDoc.isbn = bookObj?.metadata.isbn || bookObj?.metadata.ISBN || "unknown";
-                    bookDoc.path = filePath.split('/').slice(-1)[0];
-                    bookDoc.author = bookObj?.metadata.creator || "unknown";
-                    bookDoc.title = bookObj?.metadata.title || file.replace(".epub", "");
-                    bookDoc.pubdate = bookObj?.metadata.date || new Date(Date.now()).toDateString();
-                    bookDoc.cover = coverPrmoise;
-                    console.log("bookDoc", bookDoc)
-
-                 
-                    try {
-        
-                        console.log("cover", bookDoc.cover)
-                        try {
-                        await this.bookModel.create(bookDoc).then(()=>{
-                            console.log("finished file " + bookDoc.title + " successfully")
-                            resolve();
-                        });}
-                        catch (error) {
-                            console.log("error writing file", error)
-                            resolve();
-                        }
-                            
-                    } catch (error) {
-                        console.log(error);
-                        resolve();
-                    }
-            
-                })
-                book.on("error", (error) => {
-                    console.log("error parsing book xD rofl lol", error);
-                    reject();
-                    return
-                });
-
-                try {
-                    book.parse();
+    
+                    // Process book metadata and cover
+                    await this.processBookMetadata(book, bookDoc, file);
+    
+                    await this.bookModel.create(bookDoc);
+                    console.log(`Finished processing ${bookDoc.title} successfully`);
                 } catch (error) {
-                    console.log(error);
+                    console.error(`Error processing ${file}:`, error);
+                } finally {
                     resolve();
                 }
             });
-
-            const timeout = new Promise<void>((resolve, reject) => {
-                setTimeout(() => {
-                    console.log("timeout");
-                    reject();
-                }, 10000);
+    
+            book.on("error", (error) => {
+                clearTimeout(timeoutId);
+                console.error(`Error parsing book ${file}:`, error);
+                resolve();
             });
-
-            await Promise.race([processBook, timeout]).catch((e) => {
-                console.log("error processing book", e);
+    
+            try {
+                book.parse();
+            } catch (error) {
+                clearTimeout(timeoutId);
+                console.error(`Error parsing book ${file}:`, error);
+                resolve();
+            }
+        });
+    }
+    
+    private async processBookMetadata(book: any, bookDoc: any, file: string) {
+        const metadata = book.metadata || {};
+        let cover = "";
+    
+        try {
+            const imageKeys = Object.keys(book.manifest || {}).filter(key => 
+                book.manifest[key]?.mediaType?.startsWith('image/') || 
+                book.manifest[key]?.['media-type']?.startsWith('image/')
+            );
+            
+            if (imageKeys.length > 0) {
+                cover = await this.processCover(book, imageKeys[0], metadata, file);
+            }
+        } catch (error) {
+            console.error(`Error processing cover for ${file}:`, error);
+        }
+    
+        bookDoc.isbn = metadata?.isbn || metadata?.ISBN || "unknown";
+        bookDoc.path = file;
+        bookDoc.author = metadata?.creator || "unknown";
+        bookDoc.title = metadata?.title || file.replace(".epub", "");
+        bookDoc.pubdate = metadata?.date || new Date().toDateString();
+        bookDoc.cover = cover;
+    
+        console.log("bookDoc", bookDoc);
+    }
+    
+    private async processCover(book: any, coverKey: string, metadata: any, file: string): Promise<string> {
+        return new Promise<string>((resolve) => {
+            book.getImage(coverKey, async (err, data, mimeType) => {
+                if (err || mimeType === "undefined") {
+                    console.log(`No cover found or error getting cover for ${file}`);
+                    resolve("");
+                    return;
+                }
+    
+                const ext = mimeType.split('/')[1];
+                const sanitizedTitle = (metadata?.title || file.replace(".epub", "")).replace(/[^a-zA-Z0-9]/g, '');
+                const picPath = join(__dirname, '..', '..', '/uploads/archiv/covers/', sanitizedTitle + "." + ext);
+    
+                try {
+                    console.log("Writing cover file: " + picPath);
+                    await ps.writeFile(picPath, data);
+                    resolve(picPath.split('/').slice(-1)[0]);
+                } catch (error) {
+                    console.error(`Error writing cover file for ${file}:`, error);
+                    resolve("");
+                }
             });
-
-
-        };
-
-        return "done";
-
+        });
     }
 }

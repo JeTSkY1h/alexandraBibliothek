@@ -1,6 +1,6 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
-import { Box, Flex, Heading, Text, Button, Image, Spinner, Center } from '@chakra-ui/react';
+import { Box, Flex, Heading, Text, Button, Image, Spinner } from '@chakra-ui/react';
 import { Link } from 'react-router-dom';
 import { FaRegStar, FaStar } from "react-icons/fa";
 import {Navbar} from '../components/Nav/Navbar'; // Adjust the import path as necessary
@@ -12,7 +12,7 @@ const BookDetails = () => {
     const { id } = useParams<{ id: string }>();
     const { book, isLoading, error } = useBookLoader(id || "");
     const [hoveredIndex, setHoveredIndex] = React.useState(-1);
-    const {rating, setRating, isLoading: ratingLoading} = useRatingUtils(id || "");
+    const {rating, setRating} = useRatingUtils(id || "");
 
     const handleMouseEnter = (index: number) => {
         setHoveredIndex(index);

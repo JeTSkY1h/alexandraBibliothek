@@ -40,7 +40,7 @@ export const isLoggedIn = () => {
       return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
     }).join(''));
   
-    const { exp, roles } = JSON.parse(jsonPayload);
+    const { exp } = JSON.parse(jsonPayload);
     if (!exp) {
         return false;
     }

@@ -7,11 +7,11 @@ import BookDetails from "./pages/BookDetails";
 import Home from "./Layout"
 import Login from "./pages/User/Login";
 import ErrorPage from "./ErrorPage";
-import { createBrowserRouter, Route, Navigate, createRoutesFromElements, RouterProvider } from "react-router-dom";
+import { createBrowserRouter, Route, Navigate, createRoutesFromElements } from "react-router-dom";
 
 const Router = () => {
-  const [loginState, setLoginState] = useState<boolean>(isLoggedIn());
-  const [isAdminBool, setIsAdmin] = useState<boolean>(isAdmin());
+  const [loginState ] = useState<boolean>(isLoggedIn());
+  const [isAdminBool] = useState<boolean>(isAdmin());
 
   const router = createBrowserRouter(
     createRoutesFromElements(

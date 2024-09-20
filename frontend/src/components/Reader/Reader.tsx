@@ -13,37 +13,26 @@ interface ReaderProps {
 
 const Reader: React.FC<ReaderProps> = ({ epubUrl, bookID, location }) => {
   const bookRef = useRef<HTMLDivElement>(null);
-  const [section, setSection] = useState<Section | null >(null);
-  const [error, setError] = useState("");
   const [rendition, setRendition] = useState<Rendition | null>(null);
   const [progress, setProgress] = useState(0);
   const [display, setdisplay] = React.useState(false);
   const {setLocation} = useUserBookUtils(bookID);
   const bookBackground = useColorModeValue("white", "#1A202C");
   const fontColor = useColorModeValue("black", "white");
-  const [book, setBook] = useState<ePub.Book|null>(null);
 
   useEffect(  () => {
     if(!bookRef.current) {
-      setError('No ref found');
+      //setError('No ref found');
       return;
     }
     if(rendition) return;
     const newBook = ePub(epubUrl);
-    setBook(newBook);
     const rend = newBook.renderTo(bookRef.current, {
       manager: "default",
       flow: "scrolled-doc",
-      width: "100%"})
+      width: "100%"
+    })
     console.log(newBook)
-
-    newBook.ready.then(() => {
-      console.log(newBook)
-      newBook.locations.generate(1024).then((locations) => {
-        console.log(locations)
-      });
-      
-    });
 
     const scrollToElement = () => {
       if(!bookRef.current) return
@@ -60,7 +49,6 @@ const Reader: React.FC<ReaderProps> = ({ epubUrl, bookID, location }) => {
     }
     
     rend.on("rendered", (section:Section) => {
-      setSection(section);
       if(!bookRef.current) return
       rend.getContents().document
       const bookIFrame = bookRef.current.querySelector("iframe") as HTMLIFrameElement;
@@ -86,13 +74,16 @@ const Reader: React.FC<ReaderProps> = ({ epubUrl, bookID, location }) => {
        
         const viewableEntries = entries.filter(entry => entry.isIntersecting);
         console.log(viewableEntries);
-        const topParagraph = viewableEntries.sort((a, b) => 
+        const topParagraphs = viewableEntries.sort((a, b) => 
           a.boundingClientRect.top - b.boundingClientRect.top
-        )[0]?.target;
+        );
+        const topParagraph = topParagraphs[0].target;
+        const lastParagraph = topParagraphs[topParagraphs.length - 1].target;
+   
         if(!topParagraph) return;
         const cfi = topParagraph.getAttribute("data-cfi");
-        const index = parseInt(topParagraph.getAttribute("data-index") || "0");
-        const progress = (index + 2) / paragraphs.length * 100;
+        const index = parseInt(lastParagraph.getAttribute("data-index") || "0");
+        const progress = (index + 1) / paragraphs.length * 100;
         setProgress(progress);
 
 
