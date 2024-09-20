@@ -179,7 +179,7 @@ export const useBooksLoader = (limit?:number) => {
     }
 }
 
-export const useBookfileloader = (book: Book) => {
+export const useBookfileloader = () => {
 
 }
 
