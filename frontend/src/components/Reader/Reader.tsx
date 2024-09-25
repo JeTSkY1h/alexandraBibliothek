@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import ePub from 'epubjs';
 import {Rendition} from 'epubjs';
 import { Box, Button, Progress, useColorModeValue} from '@chakra-ui/react';

@@ -25,7 +25,7 @@ const EpupRender = () => {
         <>
         {isLoading && <Center><Spinner /></Center>}
         {isError && <p>Error</p>}
-        {epubUrl && <Reader epubUrl={epubUrl} bookID={id||""} location={userBookObj?.location}/>}
+        {epubUrl && <Reader epubUrl={epubUrl} bookID={id||""} startLocation={userBookObj?.location}/>}
         </>
     )
 }
