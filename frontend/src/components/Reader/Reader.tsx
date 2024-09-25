@@ -37,14 +37,16 @@ const Reader: React.FC<ReaderProps> = ({ epubUrl, bookID, startLocation }) => {
     })
 
     const scrollToElement = () => {
+    
       if(display) return;
       if(!bookRef.current) return
+      const currLocation = localStorage.getItem(`book-location-${bookID}`) || startLocation;
       const bookIFrame = bookRef.current.querySelector("iframe") as HTMLIFrameElement;
       const bookDoc = bookIFrame.contentDocument;
       if(!bookDoc) return;
       const paragraphs = bookDoc?.querySelectorAll("p");
 
-      const paragraph = Array.from(paragraphs).find((p) => p.getAttribute("data-cfi") === localStorage.getItem(`book-location-${bookID}`) || startLocation);
+      const paragraph = Array.from(paragraphs).find((p) => p.getAttribute("data-cfi") === currLocation);
       if(paragraph) {
         paragraph.scrollIntoView();
       }
