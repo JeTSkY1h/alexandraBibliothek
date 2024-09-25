@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import ePub from 'epubjs';
 import {Rendition} from 'epubjs';
 import { Box, Button, Progress, useColorModeValue} from '@chakra-ui/react';
@@ -6,17 +6,20 @@ import { useUserBookUtils } from '../../hooks/UserBookUtils';
 import Section from 'epubjs/types/section';
 
 interface ReaderProps {
-  location?: string
+  startLocation?: string
   epubUrl: ArrayBuffer | string;
   bookID: string;
 }
 
-const Reader: React.FC<ReaderProps> = ({ epubUrl, bookID, location }) => {
+const Reader: React.FC<ReaderProps> = ({ epubUrl, bookID, startLocation }) => {
   const bookRef = useRef<HTMLDivElement>(null);
   const [rendition, setRendition] = useState<Rendition | null>(null);
   const [progress, setProgress] = useState(0);
   const [display, setdisplay] = React.useState(false);
   const {setLocation} = useUserBookUtils(bookID);
+  const [location, setStateLocation] = useState(()=>{
+    return localStorage.getItem(`book-location-${bookID}`) || startLocation;
+  });
   const bookBackground = useColorModeValue("white", "#1A202C");
   const fontColor = useColorModeValue("black", "white");
 
@@ -32,16 +35,16 @@ const Reader: React.FC<ReaderProps> = ({ epubUrl, bookID, location }) => {
       flow: "scrolled-doc",
       width: "100%"
     })
-    console.log(newBook)
 
     const scrollToElement = () => {
+      if(display) return;
       if(!bookRef.current) return
       const bookIFrame = bookRef.current.querySelector("iframe") as HTMLIFrameElement;
       const bookDoc = bookIFrame.contentDocument;
       if(!bookDoc) return;
       const paragraphs = bookDoc?.querySelectorAll("p");
 
-      const paragraph = Array.from(paragraphs).find((p) => p.getAttribute("data-cfi") === location);
+      const paragraph = Array.from(paragraphs).find((p) => p.getAttribute("data-cfi") === localStorage.getItem(`book-location-${bookID}`) || startLocation);
       if(paragraph) {
         paragraph.scrollIntoView();
       }
@@ -56,7 +59,7 @@ const Reader: React.FC<ReaderProps> = ({ epubUrl, bookID, location }) => {
 
       bookDoc?.body.setAttribute("style", `background-color: ${bookBackground};`);
       if(!bookDoc) return;
-      console.log(bookDoc)
+      console.log(bookIFrame)
 
       const paragraphs = bookDoc?.querySelectorAll("p");
       paragraphs.forEach((paragraph, i) => {
@@ -77,10 +80,11 @@ const Reader: React.FC<ReaderProps> = ({ epubUrl, bookID, location }) => {
         const topParagraphs = viewableEntries.sort((a, b) => 
           a.boundingClientRect.top - b.boundingClientRect.top
         );
+
+        if(topParagraphs.length <=0) return;
         const topParagraph = topParagraphs[0].target;
         const lastParagraph = topParagraphs[topParagraphs.length - 1].target;
    
-        if(!topParagraph) return;
         const cfi = topParagraph.getAttribute("data-cfi");
         const index = parseInt(lastParagraph.getAttribute("data-index") || "0");
         const progress = (index + 1) / paragraphs.length * 100;
@@ -90,21 +94,33 @@ const Reader: React.FC<ReaderProps> = ({ epubUrl, bookID, location }) => {
 
         if(cfi) {
           setLocation(cfi);
+          setStateLocation(cfi);
+          localStorage.setItem(`book-location-${bookID}`, cfi);
         } else {
-          setLocation(section.cfiFromElement(topParagraph as HTMLElement));
+          const cfi = section.cfiFromElement(topParagraph as HTMLElement);
+          setLocation(cfi);
+          setStateLocation(cfi);
+          localStorage.setItem(`book-location-${bookID}`, cfi);
         }
       }, { root: null, rootMargin:"0px 0px -75% 0px", threshold: 0.1 }); // Adjust threshold as needed
     
       paragraphs.forEach(paragraph => observer.observe(paragraph));
+
     });
+
+    
     
     rend.on("relocated", (sectionREl:any) => {
       setLocation(sectionREl.start.cfi);
       })
 
     setRendition(rend);
+
+    return () => {
+      rend.destroy
+    }
   
-  }, [epubUrl]);
+  }, [epubUrl, location, startLocation]);
 
   useEffect(() => {
     if(display) return
@@ -116,18 +132,6 @@ const Reader: React.FC<ReaderProps> = ({ epubUrl, bookID, location }) => {
       setdisplay(true)
     }
   }, [rendition]);
-
-  const nextPage = () => {
-    if(rendition) {
-      rendition.next();
-    }
-  }
-
-  const prevPage = () => {
-    if(rendition) {
-      rendition.prev();
-    }
-  }
 
   return (
     <>
@@ -145,7 +149,7 @@ const Reader: React.FC<ReaderProps> = ({ epubUrl, bookID, location }) => {
           pos="fixed"
           height={{ base: '60px', md: '100vh' }}
           width={{ base: '50%', md: 'auto' }}
-          onClick={prevPage}
+          onClick={()=>rendition?.prev()}
           zIndex={1}
         >
           Prev
@@ -173,7 +177,7 @@ const Reader: React.FC<ReaderProps> = ({ epubUrl, bookID, location }) => {
           bottom="1px"
           height={{ base: '60px', md: '100vh' }}
           width={{ base: '50%', md: 'auto' }}
-          onClick={nextPage}
+          onClick={()=>rendition?.next()}
           zIndex={1}
         >
           Next

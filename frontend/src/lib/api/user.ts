@@ -12,7 +12,7 @@ export const register = (user: User) => {
 }
 
 export const login = (email: string, password: string):Promise<jwtDTO> => {
-    return axios.post(`${baseUrl}/login/`, {email:email, password:password}).then((res)=>{
+        return axios.post(`${baseUrl}/login/`, {email:email, password:password}).then((res)=>{
         return res.data
     })
 }
