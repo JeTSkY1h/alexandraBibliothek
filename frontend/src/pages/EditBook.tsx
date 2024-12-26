@@ -1,6 +1,6 @@
 import { Box, Button, FormControl, FormLabel, Heading, Input, Spinner } from "@chakra-ui/react"
 import { Navbar } from "../components/Nav/Navbar"
-import { useBookLoader, useBookupdater } from "../hooks/BookUtils"
+import { useBookLoader, useBookUpdater } from "../hooks/BookUtils"
 import { useParams } from "react-router-dom"
 import { useEffect, useState } from "react"
 
@@ -10,7 +10,7 @@ import { useEffect, useState } from "react"
 const EditBook = () => {
     const {id} = useParams();
     const {book} = useBookLoader(id||"");
-    const {update, error: updateError, loading: updateLoading} = useBookupdater();
+    const {update, error: updateError, loading: updateLoading} = useBookUpdater();
 
     const [title, setTitle] = useState(book?.title);
     const [author, setAuthor] = useState(book?.author);

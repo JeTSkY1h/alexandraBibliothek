@@ -40,7 +40,8 @@ export class UserBooksService {
                 startedAt: new Date(Date.now()),
                 userId: userId,
                 lastOpenedAt: new Date(Date.now()),
-                location: "0",
+                chapter: "0",
+                lastReadBlock: 0,
             });
             const createdUserBook = await this.userBookModel.create(newUserBook);
             const lol:any = createdUserBook.toObject();
@@ -58,10 +59,11 @@ export class UserBooksService {
         return newUserBook;
     }
 
-    async updateLocation(location:string, userId:string, bookId:string) {
-        console.log(location, userId, bookId);
+    async updateLocation(userId:string, bookId:string, chapter:number, lastReadBlock:number) {
+        console.log(userId, bookId);
         const userBook = await this.userBookModel.findOne({bookId: bookId, userId: userId});
-        userBook.location = location;
+        userBook.chapter = chapter;
+        userBook.lastReadBlock = lastReadBlock;
         return this.userBookModel.updateOne({bookId: bookId, userId: userId}, userBook);
     }
 

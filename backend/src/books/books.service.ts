@@ -5,10 +5,9 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Book } from './books.model';
 import { join } from "path";
-import * as Epub from "epub";
-import { finished } from "stream";
+import * as EpubJS from "epub";
 import { BooksValidator } from "./books.validator";
-import { UserBooksService } from "src/user-books/user-books.service";
+
 
 @Injectable()
 export class BooksService {
@@ -16,6 +15,27 @@ export class BooksService {
         @InjectModel("Book") private readonly bookModel: Model<Book>,
         ) {}
 
+    async getChapter(id: string, chapter: string) {
+        const book = await this.bookModel.findById(id);
+        if(!book) {
+            throw new BadRequestException("Book not found");
+        }
+        const filePath = join(__dirname, '..', '..', '/uploads/archiv', book.path);
+        const epub = new EpubJS(filePath);
+        let metadata
+        epub.on("end", () => {
+            console.log(epub)
+            console.log("epub.metadata", epub.metadata);
+            console.log("epub.toc", epub.toc);
+            metadata = epub.metadata
+            return metadata;
+        })
+        epub.parse();
+        console.log("metadata", metadata);
+        
+
+    }
+    
     async updateBook(book: BooksValidator) {
         const existingBook = await this.bookModel.findById(book._id);
         if(!existingBook) {
@@ -135,7 +155,7 @@ export class BooksService {
         return new Promise<void>(async (resolve) => {
             let book: any;
             try {
-                book = new Epub(filePath);
+                book = new EpubJS(filePath);
             } catch (error) {
                 console.error(`Error initializing Epub for ${file}:`, error);
                 resolve();

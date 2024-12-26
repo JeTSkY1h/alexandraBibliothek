@@ -1,38 +1,37 @@
 import { Body, Controller, Get, Param, Post, Query, Res, UseGuards } from '@nestjs/common';
 import { BooksService } from './books.service';
-import { LimitPipe } from 'src/Pipes/LimitPipe';
-import { OffsetPipe } from 'src/Pipes/OffsetPipe';
-import { AuthGuard } from 'src/auth/auth.guard';
 import { BooksValidator } from './books.validator';
 import { Pagination } from 'src/Decorators/Pagination';
+import { AuthGuardHeader } from 'src/auth/auth.guard.header';
 
 @Controller('books')
 export class BooksController {
     constructor(private readonly booksService: BooksService) { }
 
     @Post()
-    @UseGuards(AuthGuard)
+    @UseGuards(AuthGuardHeader)
     updateBook(@Body() book: BooksValidator){
         console.log(book);
         return this.booksService.updateBook(book);
     }
 
+    @Get("read/:id/:chapter")
+    //@UseGuards(AuthGuardHeader)
+    async readBook(@Param('id') id: string, @Param('chapter') chapter: string){
+        return this.booksService.getChapter(id, chapter);
+    }
+
     @Get()
-    @UseGuards(AuthGuard)
+    @UseGuards(AuthGuardHeader)
     getBooks(@Pagination() pagination: {limit: number, offset:number}){
         return this.booksService.getBooks(pagination.limit, pagination.offset);
     }
 
     @Get("path/:id")
-    @UseGuards(AuthGuard)
+    @UseGuards(AuthGuardHeader)
     getBookFilePath(@Param('id') id: string){
         console.log(id);
         return this.booksService.findBookFilePath(id);
-    }
-
-    @Get("test")
-    getTest(){
-        return this.booksService.reMigrateDB();
     }
 
     @Get(':id')
@@ -41,7 +40,7 @@ export class BooksController {
     }
 
     @Get('search/:search')
-    @UseGuards(AuthGuard)
+    @UseGuards(AuthGuardHeader)
     searchBooks(@Param('search') search: string, @Pagination() pagination: {limit: number, offset:number} ){
         return this.booksService.searchBooks(search, pagination.limit, pagination.offset);
     }

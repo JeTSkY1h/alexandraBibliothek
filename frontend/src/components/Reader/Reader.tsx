@@ -1,191 +1,166 @@
-import React, { useEffect, useRef, useState } from 'react';
-import ePub from 'epubjs';
-import {Rendition} from 'epubjs';
-import { Box, Button, Progress, useColorModeValue} from '@chakra-ui/react';
+import React, { useEffect, useRef, useCallback, useLayoutEffect, useState } from 'react';
+import { Box, Heading, Text, Image, Button } from '@chakra-ui/react';
+import { useChapterLoader } from '../../hooks/BookUtils';
 import { useUserBookUtils } from '../../hooks/UserBookUtils';
-import Section from 'epubjs/types/section';
 
 interface ReaderProps {
-  startLocation?: string
-  epubUrl: ArrayBuffer | string;
-  bookID: string;
+  bookId: string;
+  chapter: number;
+  lastReadBlock: number;
 }
 
-const Reader: React.FC<ReaderProps> = ({ epubUrl, bookID, startLocation }) => {
-  const bookRef = useRef<HTMLDivElement>(null);
-  const [rendition, setRendition] = useState<Rendition | null>(null);
-  const [progress, setProgress] = useState(0);
-  const [display, setdisplay] = React.useState(false);
-  const {setLocation} = useUserBookUtils(bookID);
-  const [location, setStateLocation] = useState(()=>{
-    return localStorage.getItem(`book-location-${bookID}`) || startLocation;
-  });
-  const bookBackground = useColorModeValue("white", "#1A202C");
-  const fontColor = useColorModeValue("black", "white");
+const Reader: React.FC<ReaderProps> = ({ bookId, chapter:initialChapter, lastReadBlock }) => {
+  const scrolled = useRef(false);
+  const [chapter, setChapter] = useState<number>(initialChapter);
+  const { chapterObj, setChapter: setReadingChapter, isLoading } = useChapterLoader(bookId, chapter);
+  const { setChapter:setTrackingChapter, setLastReadBlock } = useUserBookUtils(bookId, chapter);
+  const content = chapterObj || [];
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const elementRefs = useRef<(Element | null)[]>([]);
 
-  useEffect(  () => {
-    if(!bookRef.current) {
-      //setError('No ref found');
-      return;
-    }
-    if(rendition) return;
-    const newBook = ePub(epubUrl);
-    const rend = newBook.renderTo(bookRef.current, {
-      manager: "default",
-      flow: "scrolled-doc",
-      width: "100%"
-    })
-
-    const scrollToElement = () => {
-    
-      if(display) return;
-      if(!bookRef.current) return
-      const currLocation = localStorage.getItem(`book-location-${bookID}`) || startLocation;
-      const bookIFrame = bookRef.current.querySelector("iframe") as HTMLIFrameElement;
-      const bookDoc = bookIFrame.contentDocument;
-      if(!bookDoc) return;
-      const paragraphs = bookDoc?.querySelectorAll("p");
-
-      const paragraph = Array.from(paragraphs).find((p) => p.getAttribute("data-cfi") === currLocation);
-      if(paragraph) {
-        paragraph.scrollIntoView();
-      }
-      setdisplay(true);
-    }
-    
-    rend.on("rendered", (section:Section) => {
-      if(!bookRef.current) return
-      rend.getContents().document
-      const bookIFrame = bookRef.current.querySelector("iframe") as HTMLIFrameElement;
-      const bookDoc = bookIFrame.contentDocument;
-
-      bookDoc?.body.setAttribute("style", `background-color: ${bookBackground};`);
-      if(!bookDoc) return;
-      console.log(bookIFrame)
-
-      const paragraphs = bookDoc?.querySelectorAll("p");
-      paragraphs.forEach((paragraph, i) => {
-        paragraph.setAttribute("data-index",i.toString());
-        paragraph.setAttribute("data-cfi", section.cfiFromElement(paragraph as HTMLElement));
-        paragraph.setAttribute("style", `background-color: ${bookBackground};`);
-        paragraph.setAttribute("style", `color: ${fontColor};`);
-      });
-      //if first time, scroll to location
-      if(!display) {
-        scrollToElement();
-      }
-
-      const observer = new IntersectionObserver((entries) => {
-       
-        const viewableEntries = entries.filter(entry => entry.isIntersecting);
-        console.log(viewableEntries);
-        const topParagraphs = viewableEntries.sort((a, b) => 
-          a.boundingClientRect.top - b.boundingClientRect.top
-        );
-
-        if(topParagraphs.length <=0) return;
-        const topParagraph = topParagraphs[0].target;
-        const lastParagraph = topParagraphs[topParagraphs.length - 1].target;
-   
-        const cfi = topParagraph.getAttribute("data-cfi");
-        const index = parseInt(lastParagraph.getAttribute("data-index") || "0");
-        const progress = (index + 1) / paragraphs.length * 100;
-        setProgress(progress);
-
-
-
-        if(cfi) {
-          setLocation(cfi);
-          setStateLocation(cfi);
-          localStorage.setItem(`book-location-${bookID}`, cfi);
-        } else {
-          const cfi = section.cfiFromElement(topParagraph as HTMLElement);
-          setLocation(cfi);
-          setStateLocation(cfi);
-          localStorage.setItem(`book-location-${bookID}`, cfi);
-        }
-      }, { root: null, rootMargin:"0px 0px -75% 0px", threshold: 0.1 }); // Adjust threshold as needed
-    
-      paragraphs.forEach(paragraph => observer.observe(paragraph));
-
-    });
-
-    
-    
-    rend.on("relocated", (sectionREl:any) => {
-      setLocation(sectionREl.start.cfi);
-      })
-
-    setRendition(rend);
-
-    return () => {
-      rend.destroy
-    }
-  
-  }, [epubUrl, location, startLocation]);
+  const saveProgress = useCallback((index: number) => {
+    setLastReadBlock(index);
+  }, [setLastReadBlock]);
 
   useEffect(() => {
-    if(display) return
-    if(!rendition) return;
-    if(location) {
-      rendition.display(location);
-    } else {
-      rendition.display();
-      setdisplay(true)
+    const intersectingElems:Array<Element> = [];
+    if (!observerRef.current) {
+      observerRef.current = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              console.log('Element is visible');
+              intersectingElems.push(entry.target)
+              console.log(intersectingElems[0])
+              intersectingElems[0].setAttribute("style", "color: pink")
+              const index = elementRefs.current.indexOf(intersectingElems[0]);
+              if (index !== -1) {
+                saveProgress(index);
+              }
+            } else {
+              intersectingElems.splice(intersectingElems.indexOf(entry.target), 1)
+              entry.target.setAttribute("style", "color: var(--chakra-colors-chakra-body-text)")
+            }
+            
+          });
+        },
+        { threshold: 0.5 } // Adjust the threshold as needed
+      );
     }
-  }, [rendition]);
+
+    const currentObserver = observerRef.current;
+    elementRefs.current.forEach((element) => {
+      if (element) {
+        currentObserver.observe(element);
+      }
+    });
+
+    return () => {
+      elementRefs.current.forEach((element) => {
+        if (element) {
+          currentObserver.unobserve(element);
+        }
+      });
+    };
+  }, [content, saveProgress]);
+
+  const renderElement = (element: any, index: number) => {
+    const { tag, children, text, attrs } = element;
+
+    if (tag) {
+      let Component;
+      switch (tag) {
+        case 'h1':
+          Component = (props: any) => <Heading as="h1" {...props} />;
+          break;
+        case 'h2':
+          Component = (props: any) => <Heading as="h2" {...props} />;
+          break;
+        case 'h3':
+          Component = (props: any) => <Heading as="h3" {...props} />;
+          break;
+        case 'h4':
+          Component = (props: any) => <Heading as="h4" {...props} />;
+          break;
+        case 'h5':
+          Component = (props: any) => <Heading as="h5" {...props} />;
+          break;
+        case 'h6':
+          Component = (props: any) => <Heading as="h6" {...props} />;
+          break;
+        case 'p':
+          Component = (props: any) => <Text {...props}/>;
+          break;
+        case 'img':
+          return (
+            <Box ref={(el) => (elementRefs.current[index] = el)} key={index}>
+              <Image src={attrs.src} alt="Image" />
+            </Box>
+          );
+        default:
+          Component = Box;
+      }
+      console.log(Component)
+      console.log(children)
+
+      return (
+        <Component ref={(el) => (elementRefs.current[index] = el)} key={index}>
+          {children && children.map((child: any, childIndex: number) => renderElement(child, childIndex))}
+        </Component>
+      );
+    }
+
+    if (text) {
+      return (
+        <Box ref={(el) => (elementRefs.current[index] = el)} key={index}>
+          {text}
+        </Box>
+      );
+    }
+
+    return null;
+  };
+
+  const handlePrev = () => {
+    if (chapter > 0) {
+      setChapter(currChapter=>currChapter - 1);
+    }
+  };
+
+  useLayoutEffect(() => {
+    if (isLoading) {
+      scrolled.current = false;
+      return
+    }
+    console.log("Last read block: ", lastReadBlock);
+    console.log("Scrolled: ", scrolled.current);
+    if (lastReadBlock !== 0 && scrolled.current === false) {
+      elementRefs.current[lastReadBlock]?.scrollIntoView();
+      scrolled.current = true;
+    }
+  }), [isLoading];
+
+  useEffect(()=>{
+    console.log("Setting chapter", chapter);
+    setReadingChapter(chapter);
+    setTrackingChapter(chapter);
+  }, [chapter])
+
+  const handleNext = () => {
+    setChapter(currChapter=>currChapter + 1);
+  };
 
   return (
-    <>
-      <Box
-        width="100vw"
-        display="flex"
-        justifyContent="center"
-        flexDirection={{ base: 'column', md: 'row' }}
-        alignItems="center"
-        padding="1rem"
-      >
-        <Button
-          left="1px"
-          bottom="1px"
-          pos="fixed"
-          height={{ base: '60px', md: '100vh' }}
-          width={{ base: '50%', md: 'auto' }}
-          onClick={()=>rendition?.prev()}
-          zIndex={1}
-        >
-          Prev
-        </Button>
-        <Box
-          width={"100%"}
-          position={"fixed"}
-          top={0}
-          left={0}
-          zIndex={2}
-          >
-            <Progress value={progress} size="xs" w={'100%'} colorScheme="teal" />
-          </Box>
-        <Box
-          ref={bookRef}
-          minW={{ base: '100%', md: '800px' }}
-          padding={{base:"0", md:"4rem"}}
-          mb={{ base: '60px', md: '0' }}
-          flex="1"
-          zIndex={0}
-        />
-        <Button
-          pos="fixed"
-          right="1px"
-          bottom="1px"
-          height={{ base: '60px', md: '100vh' }}
-          width={{ base: '50%', md: 'auto' }}
-          onClick={()=>rendition?.next()}
-          zIndex={1}
-        >
-          Next
-        </Button>
-      </Box>
-    </>
+    <Box overflow="auto" height="100vh" p={4}>
+      {isLoading && <p>Loading</p>}
+      {content.map((element: any, index: number) => (
+        <React.Fragment key={index}>
+          {renderElement(element, index)}
+        </React.Fragment>
+      ))}
+      <Button onClick={handlePrev}>Previous</Button>
+      <Button onClick={handleNext}>Next</Button>
+    </Box>
   );
 };
 

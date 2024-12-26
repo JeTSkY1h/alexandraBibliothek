@@ -1,9 +1,8 @@
 import { Body, Controller, Get, Post, Query } from '@nestjs/common';
-import {userBooksDTO} from "./user-books.validator";
+import {userBooksDTO, UserBooksLocationDTO} from "./user-books.validator";
 import { UserBooksService } from './user-books.service';
 import { JwToken } from 'src/Decorators/JwToken';
 import { GetUserPipe } from 'src/Pipes/GetUserPipe';
-import { AuthGuard } from 'src/auth/auth.guard';
 import { Pagination } from 'src/Decorators/Pagination';
 
 @Controller('user-books')
@@ -16,8 +15,8 @@ export class UserBooksController {
     }
 
     @Post("location")
-    async updateLocation(@JwToken(GetUserPipe) userId:string, @Body() {location, bookId}: {location:string, bookId:string}) {
-        return this.userBooksService.updateLocation(location, userId, bookId);
+    async updateLocation(@JwToken(GetUserPipe) userId:string, @Body() {chapter, lastReadBlock, bookId}:UserBooksLocationDTO) {
+        return this.userBooksService.updateLocation(userId, bookId, chapter, lastReadBlock);
     }
 
     @Get("last-read")

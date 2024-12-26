@@ -4,7 +4,7 @@ import { Request } from "express"
 import * as jwt from "jsonwebtoken"
 
 @Injectable()
-export class AuthGuard implements CanActivate {
+export class AuthGuardHeader implements CanActivate {
 
     constructor(private jwtService: JwtService) {}
     

@@ -2,8 +2,8 @@ import { Controller, Post, Body, UseGuards, Request, Get } from "@nestjs/common"
 import { UserService } from "./user.service";
 
 import * as bcrypt from "bcrypt"
-import { AuthGuard } from "../auth/auth.guard";
 import { userDTO } from "./user.validator";
+import { AuthGuardHeader } from "src/auth/auth.guard.header";
 
 @Controller("user")
 export class UserController {
@@ -27,7 +27,7 @@ export class UserController {
         };
     }
 
-    @UseGuards(AuthGuard)
+    @UseGuards(AuthGuardHeader)
     @Get("profile")
     getProfile(@Request() req) {
         return req.user

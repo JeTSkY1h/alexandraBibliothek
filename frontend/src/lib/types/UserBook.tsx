@@ -1,10 +1,10 @@
 export interface IUserBookDTO {
     bookId: string;
     userId: string;
-    location: string;
+    chapter: number;
+    lastReadBlock:number;
     rating?: number;
     review?: string;
     startedAt: Date;
     lastOpenedAt: Date;
-    path?: string;
 }

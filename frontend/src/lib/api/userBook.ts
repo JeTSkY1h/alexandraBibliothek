@@ -10,8 +10,8 @@ export const openBook = async (bookId: string) => {
     });
 }
 
-export const updateLocation = async (location:string, bookId:string) => {
-    return axios.post(`${baseUrl}/user-books/location`, {location, bookId}, {headers: {Authorization: `Bearer ${token}`}}).then((res)=>{
+export const updateLocation = async (bookId:string, chapter:number, lastReadBlock:number) => {
+    return axios.post(`${baseUrl}/user-books/location`, {chapter, lastReadBlock, bookId}, {headers: {Authorization: `Bearer ${token}`}}).then((res)=>{
         console.log(res);
         return res.data
     });

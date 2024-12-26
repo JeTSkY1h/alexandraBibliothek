@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
-import { getRating, openBook, updateLocation, updateRating } from "../lib/api/userBook";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { getRating, lastReadBooks, openBook, updateLocation, updateRating } from "../lib/api/userBook";
 import { IUserBookDTO } from "../lib/types/UserBook";
 
 export const useUserBookLoader = (bookId:string) => {
@@ -34,30 +34,30 @@ export const useUserBookLoader = (bookId:string) => {
 
 }
 
-export const useUserBookUtils = (bookID:string) => {
-    const [location, setLocation] = useState<string>("0");
+export const useUserBookUtils = (bookID:string, initialChapter:number ) => {
+    const [chapter, setChapter] = useState<number>(initialChapter);
+    const [lastReadBlock, setLastReadBlock] = useState<number>(0);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [isError, setIsError] = useState<boolean>(false);
 
-
     const handleLocationUpdate = useCallback(() => {
-        if(!location) return;
+        if(chapter === undefined || lastReadBlock === undefined) return;
         if(isLoading) return;
         setIsLoading(true);
-        updateLocation(location, bookID).then(()=>{
+        updateLocation(bookID, chapter, lastReadBlock).then(()=>{
             setIsLoading(false);
         }).catch((e)=>{
             setIsError(true);
             setIsLoading(false);
             console.log(e);
         })
-    }, [location]);
+    }, [lastReadBlock, chapter]);
 
     useEffect(()=>{
         handleLocationUpdate();
-    }, [location])
+    }, [chapter, lastReadBlock])
 
-    return {setLocation, isLoading, isError}
+    return {isLoading, isError, handleLocationUpdate, setChapter, setLastReadBlock}
 }
 
 export const useRatingUtils = (bookID:string) => {

@@ -2,7 +2,8 @@ import { Controller, Get, Param, Res, UseGuards } from '@nestjs/common';
 import { AppService } from './app.service';
 import { join } from 'path';
 import { Response } from 'express';
-import { AuthGuard } from './auth/auth.guard';
+import { AuthGuardQuery } from './auth/auth.guard.query';
+import { AuthGuardHeader } from './auth/auth.guard.header';
 
 @Controller()
 export class AppController {
@@ -19,13 +20,13 @@ export class AppController {
   }
 
   @Get("book/:path")
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuardQuery)
   async serveFile(@Param('path') path: string, @Res() res: Response): Promise<any> {
       res.sendFile(join(__dirname,'..', '/uploads/archiv', path));
     }
     
   @Get("bookbyId/:id")
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuardHeader)
   async serveFileById(@Param('id') id: string, @Res() res: Response): Promise<any> {
       res.sendFile(join(__dirname,'..', '/uploads/archiv', id));
     }

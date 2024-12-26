@@ -1,10 +1,49 @@
 import { useCallback, useEffect, useState } from "react"
-import { getBook, getBookPath, getBooks, searchBooks, updateBook } from "../lib/api/books";
+import { getBook, getBookPath, getBooks, getChapterObjects, searchBooks, updateBook } from "../lib/api/books";
 import { Book } from "../lib/types/Book";
 import { baseUrl } from "../lib/api/url";
 import { lastReadBooks } from "../lib/api/userBook";
 
-export const useBookupdater = () => {
+export const useChapterLoader = (initialBookId:string, initialChapter:number) => {
+    const [isError, setError] = useState<string | null>();
+    const [isLoading, setLoading] = useState(false);
+    const [chapter, setChapter] = useState<number>(initialChapter);
+    const [bookId, setBookId] = useState<string | null>(initialBookId);
+    const [chapterObj, setChapterObj] = useState<any | null>(null);
+
+    const loadChapter = useCallback(() => {
+        console.log("Loading chapter");
+        if(isLoading) return;
+        if(!bookId) return;
+        console.log("BookId: ", bookId);
+        setLoading(true);
+        getChapterObjects(bookId, chapter).then((data) => {
+            console.log(data);
+            setChapterObj(data);
+            setLoading(false);
+        }).catch((e) => {
+            console.log(e);
+            setError(e);
+            setLoading(false);
+        })
+    }, [chapter, bookId, isLoading])
+
+    useEffect(() => {
+        loadChapter();
+    }, [chapter, bookId])
+    
+    return {
+        setChapter,
+        chapter,
+        setBookId,
+        loadChapter,
+        chapterObj,
+        isError,
+        isLoading
+    }
+}
+
+export const useBookUpdater = () => {
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     

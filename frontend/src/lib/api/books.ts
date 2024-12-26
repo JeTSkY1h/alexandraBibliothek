@@ -11,6 +11,12 @@ export const updateBook = async (book:any) => {
     });
 }
 
+export const getChapterObjects = async (id:string, chapter:number) => {
+    return axios.get(`${baseUrl}/books/read/${id}/${chapter}`, {headers: {Authorization: `Bearer ${token}`}}).then((res)=>{
+        return res.data
+    });
+}
+
 export const getBook = async (id:string) => {
     return axios.get(`${baseUrl}/books/${id}`, {headers: {Authorization: `Bearer ${token}`}}).then((res)=>{
         return res.data
@@ -41,8 +47,7 @@ export const getBookPath = async (id:string) => {
 }
 
 export const getBookfile = async (filePath:string) => {
-    return axios.get(`${baseUrl}/book/${filePath}`,  {responseType: "blob", headers: {Authorization: `Bearer ${token}`}})
-        .then((res)=>{
+    return axios.get(`${baseUrl}/book/${filePath}?token=${token}`).then((res)=>{
             return res.data
         });
 }

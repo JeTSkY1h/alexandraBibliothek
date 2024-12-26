@@ -10,3 +10,18 @@ export interface Book {
     lastReadAt?: string;
 }
 
+export interface ContentChild {
+    type: number;
+    text?: string;
+    tag?: string;
+    children?: ContentChild[];
+    attrs?: Record<string, any>;
+  }
+  
+export interface ContentBlock {
+    tag: string;
+    type: number;
+    children?: ContentChild[];
+    attrs: Record<string, any>;
+  }
+

@@ -11,8 +11,12 @@ export const userBookShema = new Schema(
         type: String,
         required: true,
         },
-        location: {
-        type: String,
+        chapter: {
+        type: Number,
+        required: true,
+        },
+        lastReadBlock: {
+        type: Number,
         required: true,
         },
         rating: {
@@ -40,7 +44,8 @@ export const userBookShema = new Schema(
 export interface IUserBookDTO {
     bookId: string;
     userId: string;
-    location: string;
+    chapter: string;
+    lastReadBlock:string;
     rating?: number;
     review?: string;
     startedAt: Date;
